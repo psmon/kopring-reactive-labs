@@ -57,6 +57,7 @@ Spring Boot내에서 작동되며, 테스트코드는 Junit5를 이용합니다.
 
 ### [`ClusterTest.kt`](cluster/ClusterTest.kt)
 - 로컬로 작성된 액터를 보유한 어플리케이션은 pekko.conf 설정만으로 클러스터 구성이 되며, 분산액터를 포함 클러스터내 단하나만 작동을 보장하는 액터를 구성할수 있으며 위치를 알필요없이 단일어플리케이션에서 인메모리를 이용하는것처럼 액터를 이용할수 있습니다.
+- 로컬로 먼저 구성된 액터가 로직변경없이 리모트로 확장가능한점은 이벤트(도메인을) 먼저 설계한후 인프라를 이후 붙여 확장할수 있다란 장점이 있습니다. 멀티스레드/네트워크 장치를 활용하지만, 액터시스템이 제공하는 툴킷으로 인해 직접 프로그래밍할 필요는없게됩니다. 
 - https://pekko.apache.org/docs/pekko/1.1/typed/cluster-singleton.html
 - https://pekko.apache.org/docs/pekko/1.1/typed/cluster-sharding.html
 
