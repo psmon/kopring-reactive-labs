@@ -63,6 +63,6 @@ Spring Boot내에서 작동되며, 테스트코드는 Junit5를 이용합니다.
 
 ## 추가 참고링크 
 
-Akka버전을 베이스로 작성되었지만 Pekko와 호환됩니다.
+Akka(2.6x)버전을 베이스로 설명된 버전으로 Pekko(1.2)와 호환됩니다.
 
 - [Akka with Kotlin](https://wiki.webnori.com/display/AKKA/AKKA.Kotlin)
