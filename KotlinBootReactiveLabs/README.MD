@@ -30,7 +30,7 @@ Reactive를 활용한 웹소켓 Test
 
 복잡한 문제를 풀수 있는 유용한 패턴을 연구합니다.
 
-- https://pekko.apache.org/
+- https://pekko.apache.org/docs/pekko/current/index.html
 - https://www.baeldung.com/akka-with-spring
 - https://wiki.webnori.com/display/AKKA/AKKA.Kotlin
 
