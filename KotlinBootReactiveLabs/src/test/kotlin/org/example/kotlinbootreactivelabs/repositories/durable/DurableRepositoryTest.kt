@@ -3,7 +3,8 @@ package org.example.kotlinbootreactivelabs.repositories.durable
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
-import org.example.kotlinbootreactivelabs.actor.state.store.HelloStoreState
+import org.example.kotlinbootreactivelabs.actor.state.model.HelloStoreState
+
 import org.example.kotlinbootreactivelabs.repositories.durable.dto.DurableState
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach

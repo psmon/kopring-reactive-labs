@@ -7,6 +7,9 @@ import org.apache.pekko.actor.typed.javadsl.Behaviors
 import org.apache.pekko.actor.typed.javadsl.StashBuffer
 import org.example.kotlinbootreactivelabs.repositories.durable.DurableRepository
 import org.apache.pekko.Done
+import org.example.kotlinbootreactivelabs.actor.persistent.PersitenceSerializable
+import org.example.kotlinbootreactivelabs.actor.state.model.HappyStashState
+import org.example.kotlinbootreactivelabs.actor.state.model.HelloStashState
 
 // https://nightlies.apache.org/pekko/docs/pekko/1.1/docs/typed/stash.html
 
@@ -19,25 +22,18 @@ data class SavaState(val state: HelloStashState, val replyTo:ActorRef<Done>) : H
 data class GetState(val replyTo:ActorRef<HelloStashState>) : HelloStashCommand()
 data object SaveSuccess : HelloStashCommand()
 
-/** 상태 정의 */
-enum class HappyStashState {
-    HAPPY, ANGRY
-}
 
-data class HelloStashState (
-    var happyState: HappyStashState,
-    var helloCount: Int,
-    var helloTotalCount: Int
-)
 
 class HelloStashActor private constructor(
     private val context: ActorContext<HelloStashCommand>,
     private val persistenceId : String,
     private val durableRepository: DurableRepository,
+    private val buffer: StashBuffer<HelloStashCommand>
 ) {
 
     companion object {
-        fun create(persistenceId: String, durableRepository: DurableRepository): Behavior<HelloStashCommand> {
+        fun create(persistenceId: String, durableRepository: DurableRepository,
+                   buffer: StashBuffer<HelloStashCommand>): Behavior<HelloStashCommand> {
 
             return Behaviors.withStash(100, {
                     Behaviors.setup {
@@ -57,16 +53,17 @@ class HelloStashActor private constructor(
                                     }
                                 })
 
-                            HelloStashActor(context, persistenceId, durableRepository).start()
+                            HelloStashActor(context, persistenceId, durableRepository, buffer).start()
                     }
                 })
         }
     }
 
-    private lateinit var buffer: StashBuffer<HelloStashCommand>
+    //private lateinit var buffer: StashBuffer<HelloStashCommand>
 
     init {
         context.log.info("Create HelloStashStoreActor")
+
     }
 
     private fun start() : Behavior<HelloStashCommand> {

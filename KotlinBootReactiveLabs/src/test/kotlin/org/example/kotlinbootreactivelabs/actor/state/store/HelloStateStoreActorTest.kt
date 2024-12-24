@@ -2,6 +2,8 @@ package org.example.kotlinbootreactivelabs.actor.state.store
 
 import org.apache.pekko.actor.testkit.typed.javadsl.ActorTestKit
 import org.apache.pekko.actor.testkit.typed.javadsl.TestProbe
+import org.example.kotlinbootreactivelabs.actor.state.model.HappyState
+import org.example.kotlinbootreactivelabs.actor.state.model.HelloStoreState
 import org.example.kotlinbootreactivelabs.repositories.durable.DurableRepository
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll

@@ -18,6 +18,8 @@ import org.apache.pekko.stream.javadsl.Sink
 import org.apache.pekko.stream.OverflowStrategy
 
 import org.apache.pekko.stream.QueueOfferResult
+import org.example.kotlinbootreactivelabs.actor.state.model.HappyState
+import org.example.kotlinbootreactivelabs.actor.state.model.HelloStoreState
 import org.example.kotlinbootreactivelabs.actor.supervisor.RestartChild
 import org.example.kotlinbootreactivelabs.actor.supervisor.SupervisorCommand
 import org.example.kotlinbootreactivelabs.repositories.durable.DurableRepository
@@ -39,16 +41,6 @@ sealed class HelloStateStoreActorResponse
 data class HelloResponseStore(val message: String) : HelloStateStoreActorResponse()
 data class HelloCountResponseStore(val count: Int) : HelloStateStoreActorResponse()
 
-/** 상태 정의 */
-enum class HappyState {
-    HAPPY, ANGRY
-}
-
-data class HelloStoreState (
-    var happyState: HappyState,
-    var helloCount: Int,
-    var helloTotalCount: Int
-)
 
 /** HelloStateActor 클래스 */
 class HelloStateStoreActor private constructor(
