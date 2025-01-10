@@ -42,6 +42,9 @@ class PubSubActorTest {
         val topic: ActorRef<Topic.Command<String>> = nodeA.spawn(Topic.create(String::class.java,
             "pubsub-topic"))
 
+        val topic2: ActorRef<Topic.Command<String>> = nodeA.spawn(Topic.create(String::class.java,
+            "pubsub-topic"))
+
         val probe = nodeA.createTestProbe<String>()
 
         val probe2 = nodeA.createTestProbe<String>()

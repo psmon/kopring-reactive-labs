@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSE Test</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        #events {
+            width: 80%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid #333333;
+            padding: 10px;
+            background-color: #1e1e1e;
+        }
+        .event {
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            background-color: #333333;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+<h1>SSE Test</h1>
+<input type="text" id="brandId" placeholder="Enter your brand ID" />
+<input type="text" id="userId" placeholder="Enter your user ID" />
+<button onclick="startSSE()">Start SSE</button>
+<div id="events"></div>
+
+<script>
+    let eventSource;
+
+    function startSSE() {
+        const brandId = document.getElementById("brandId").value;
+        const userId = document.getElementById("userId").value;
+        if (!brandId || !userId) {
+            alert("Please enter both brand ID and user ID.");
+            return;
+        }
+
+        eventSource = new EventSource(`/sse?brandId=${brandId}&userId=${userId}`);
+
+        eventSource.onmessage = function(event) {
+            const eventsDiv = document.getElementById("events");
+            const eventDiv = document.createElement("div");
+            eventDiv.className = "event";
+            eventDiv.textContent = event.data;
+            eventsDiv.appendChild(eventDiv);
+            eventsDiv.scrollTop = eventsDiv.scrollHeight;
+        };
+
+        eventSource.onerror = function(error) {
+            console.error("EventSource failed: ", error);
+        };
+    }
+</script>
+</body>
+</html>
