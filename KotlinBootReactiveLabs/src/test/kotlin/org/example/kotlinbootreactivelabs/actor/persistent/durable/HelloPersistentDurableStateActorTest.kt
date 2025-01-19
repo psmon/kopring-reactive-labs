@@ -10,11 +10,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 
-// Warning: 이 액터는 akka 2.7에서 작동확인이 되었으나
-// r2dbc 의존성때문에 pekko 1.1.2(akka 2.6.16)에서는 작동하지 않을수 있습니다.
-// 다음 플러그인 의존성 확인필요 ( 1.0.0 )
-// https://pekko.apache.org/docs/pekko-persistence-r2dbc/current/
-
+// 다음 drive에서 확인검증됨
+// runtimeOnly("org.postgresql:r2dbc-postgresql:0.9.3.RELEASE")
 
 class HelloPersistentDurableStateActorTest {
 

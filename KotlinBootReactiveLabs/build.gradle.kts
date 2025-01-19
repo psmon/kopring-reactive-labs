@@ -109,8 +109,7 @@ dependencies {
 
     // RunTime Only
     runtimeOnly("com.mysql:mysql-connector-j")
-    //runtimeOnly("dev.miku:r2dbc-mysql")
-    runtimeOnly("org.postgresql:r2dbc-postgresql")
+    runtimeOnly("org.postgresql:r2dbc-postgresql:0.9.3.RELEASE")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.3")
 
     // Test Only

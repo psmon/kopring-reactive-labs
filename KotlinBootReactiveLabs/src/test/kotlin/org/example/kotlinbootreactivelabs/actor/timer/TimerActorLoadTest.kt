@@ -37,7 +37,7 @@ class TimerActorLoadTest {
         }
 
         probe.awaitAssert {
-            probe.expectNoMessage(Duration.ofSeconds(9))
+            probe.expectNoMessage(Duration.ofSeconds(30))
         }
     }
 }
