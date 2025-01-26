@@ -33,6 +33,7 @@ val pekko_r2dbc_version = "1.0.0"
 val pekko_jdbc_version = "1.1.0"
 
 val r2dbc_mysql = "1.2.0"
+val r2dbc_postgresql = "0.9.3.RELEASE"
 
 val jwt_version = "0.11.5"
 val jackson_version = "2.15.2"
@@ -54,9 +55,11 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt-impl:$jwt_version")
     implementation("io.jsonwebtoken:jjwt-jackson:$jwt_version")
 
-    // Db Drivers
-    implementation("org.postgresql:postgresql")
-    implementation("io.asyncer:r2dbc-mysql:$r2dbc_mysql")
+    // RunTime Only
+    runtimeOnly("com.mysql:mysql-connector-j")
+    runtimeOnly("io.asyncer:r2dbc-mysql:$r2dbc_mysql")
+    runtimeOnly("org.postgresql:r2dbc-postgresql:$r2dbc_postgresql")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.3")
 
     // Annotation processor
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
@@ -107,16 +110,12 @@ dependencies {
     testImplementation("org.apache.pekko:pekko-persistence-testkit_$scala_version:$pekko_version")
     testImplementation("org.apache.pekko:pekko-multi-node-testkit_$scala_version:$pekko_version")
 
-    // RunTime Only
-    runtimeOnly("com.mysql:mysql-connector-j")
-    runtimeOnly("org.postgresql:r2dbc-postgresql:0.9.3.RELEASE")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.3")
-
     // Test Only
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.3")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.projectreactor:reactor-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.3")
     testImplementation("com.squareup.okhttp3:okhttp:4.12.0")
 
@@ -139,3 +138,17 @@ tasks.withType<Test> {
     jvmArgs = listOf("-Duser.timezone=Asia/Seoul")
 }
 
+tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
+    doFirst {
+        val args = mutableListOf<String>()
+        if (project.hasProperty("serverPort")) {
+            args.add("-Dserver.port=${project.property("serverPort")}")
+        }
+        if (project.hasProperty("clusterConfig")) {
+            args.add("-DCluster=${project.property("clusterConfig")}")
+        }
+        if (args.isNotEmpty()) {
+            jvmArgs = args
+        }
+    }
+}

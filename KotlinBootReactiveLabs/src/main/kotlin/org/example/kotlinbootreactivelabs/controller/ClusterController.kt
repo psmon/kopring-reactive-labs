@@ -2,12 +2,16 @@ package org.example.kotlinbootreactivelabs.controller
 
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.apache.pekko.actor.typed.ActorRef
+import org.apache.pekko.actor.typed.SupervisorStrategy
 import org.apache.pekko.actor.typed.javadsl.AskPattern
+import org.apache.pekko.actor.typed.javadsl.Behaviors
 import org.apache.pekko.cluster.sharding.typed.ShardingEnvelope
 import org.apache.pekko.cluster.sharding.typed.javadsl.ClusterSharding
 import org.apache.pekko.cluster.sharding.typed.javadsl.Entity
 import org.apache.pekko.cluster.sharding.typed.javadsl.EntityRef
 import org.apache.pekko.cluster.sharding.typed.javadsl.EntityTypeKey
+import org.apache.pekko.cluster.typed.ClusterSingleton
+import org.apache.pekko.cluster.typed.SingletonActor
 import org.example.kotlinbootreactivelabs.actor.cluster.CounterActor
 import org.example.kotlinbootreactivelabs.actor.cluster.CounterCommand
 import org.example.kotlinbootreactivelabs.actor.cluster.CounterState
@@ -29,6 +33,34 @@ import java.time.Duration
 class ClusterController(private val akka: AkkaConfiguration) {
 
     private val akkaSystem = akka.getMainStage()
+
+    @PostMapping("/increment-single-count-actor")
+    fun createSingleCountActor(@RequestParam count: Int): Mono<String> {
+        return Mono.fromCallable {
+
+            val single = akka.getSingleCount()
+            single.tell(Increment(count))
+
+            "Incremented Single Count Actor $count"
+        }
+    }
+
+    @GetMapping("/get-single-count-actor")
+    fun getSingleCount(): Mono<String> {
+        return Mono.fromCallable {
+
+            val single = akka.getSingleCount()
+
+            val response = AskPattern.ask(
+                single,
+                { replyTo: ActorRef<CounterState> -> GetCount(replyTo) },
+                Duration.ofSeconds(3),
+                akka.getScheduler()
+            ).toCompletableFuture().get()
+
+            "Get Single Count Actor ${response.count}"
+        }
+    }
 
     @PutMapping("/create-shard-count-actor")
     fun createShardCountActor(@RequestParam entityId: String): Mono<String> {

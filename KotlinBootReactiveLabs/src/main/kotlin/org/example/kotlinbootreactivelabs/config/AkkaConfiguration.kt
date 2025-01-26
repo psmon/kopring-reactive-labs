@@ -4,11 +4,16 @@ import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import jakarta.annotation.PostConstruct
 import jakarta.annotation.PreDestroy
+import org.apache.pekko.actor.typed.ActorRef
 import org.apache.pekko.actor.typed.ActorSystem
+import org.apache.pekko.actor.typed.SupervisorStrategy
+import org.apache.pekko.actor.typed.javadsl.Behaviors
 import org.apache.pekko.cluster.sharding.typed.javadsl.ClusterSharding
 import org.apache.pekko.cluster.sharding.typed.javadsl.Entity
 import org.apache.pekko.cluster.sharding.typed.javadsl.EntityTypeKey
 import org.apache.pekko.cluster.typed.Cluster
+import org.apache.pekko.cluster.typed.ClusterSingleton
+import org.apache.pekko.cluster.typed.SingletonActor
 import org.example.kotlinbootreactivelabs.actor.MainStageActor
 import org.example.kotlinbootreactivelabs.actor.MainStageActorCommand
 import org.example.kotlinbootreactivelabs.actor.cluster.CounterActor
@@ -22,6 +27,7 @@ import org.example.kotlinbootreactivelabs.repositories.durable.DurableRepository
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Configuration
+import java.time.Duration
 
 @Configuration
 class AkkaConfiguration {
@@ -33,6 +39,8 @@ class AkkaConfiguration {
     private lateinit var helloState: ActorSystem<HelloStateActorCommand>
 
     private lateinit var helloStateStore : ActorSystem<HelloStateStoreActorCommand>
+
+    private lateinit var singleCount: ActorRef<CounterCommand>
 
     @Autowired lateinit var durableRepository: DurableRepository
 
@@ -81,6 +89,17 @@ class AkkaConfiguration {
                 ))
             }
         }
+
+        // ClusterSingleton
+        val single:ClusterSingleton = ClusterSingleton.get(mainStage)
+        singleCount = single.init(
+            SingletonActor.of(
+                Behaviors.supervise(CounterActor.create("singleId"))
+                    .onFailure(SupervisorStrategy.restartWithBackoff(
+                        Duration.ofSeconds(1), Duration.ofSeconds(2), 0.2)
+                    ),
+                "GlobalCounter"))
+
     }
 
     @PreDestroy
@@ -90,6 +109,10 @@ class AkkaConfiguration {
 
     fun getMainStage(): ActorSystem<MainStageActorCommand> {
         return mainStage
+    }
+
+    fun getSingleCount(): ActorRef<CounterCommand> {
+        return singleCount
     }
 
     fun getHelloState(): ActorSystem<HelloStateActorCommand> {
