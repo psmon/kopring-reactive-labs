@@ -81,9 +81,9 @@ dependencies {
     implementation(platform("org.apache.pekko:pekko-bom_$scala_version:$pekko_version"))
 
     // Classic Actor
-    // 비헤이버 패턴을 이용한 TypedActor를 활용합니다.
-    //implementation("org.apache.pekko:pekko-actor_$scalaVersion:$pekkoVersion")
-    //implementation("org.apache.pekko:pekko-stream_$scalaVersion:$pekkoVersion")
+    // implementation("org.apache.pekko:pekko-actor_$scala_version:$pekko_version")
+    // implementation("org.apache.pekko:pekko-stream_$scala_version:$pekko_version")
+    //implementation("org.apache.pekko:pekko-cluster-tools_$scala_version:$pekko_version")
 
     // Typed Actor
     implementation("org.apache.pekko:pekko-actor-typed_$scala_version:$pekko_version")

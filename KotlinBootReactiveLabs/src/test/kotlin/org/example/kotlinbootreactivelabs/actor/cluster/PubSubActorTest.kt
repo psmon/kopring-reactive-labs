@@ -5,6 +5,8 @@ import org.apache.pekko.actor.testkit.typed.javadsl.ActorTestKit
 import org.apache.pekko.actor.typed.ActorRef
 import org.apache.pekko.actor.typed.pubsub.Topic
 import org.apache.pekko.cluster.typed.Cluster
+import org.apache.pekko.cluster.typed.ClusterSingleton
+import org.apache.pekko.cluster.typed.SingletonActor
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import kotlin.test.Test
@@ -42,11 +44,7 @@ class PubSubActorTest {
         val topic: ActorRef<Topic.Command<String>> = nodeA.spawn(Topic.create(String::class.java,
             "pubsub-topic"))
 
-        val topic2: ActorRef<Topic.Command<String>> = nodeA.spawn(Topic.create(String::class.java,
-            "pubsub-topic"))
-
         val probe = nodeA.createTestProbe<String>()
-
         val probe2 = nodeA.createTestProbe<String>()
 
         topic.tell(Topic.subscribe(probe.ref))
@@ -57,4 +55,32 @@ class PubSubActorTest {
         probe.expectMessage("Test Message")
         probe2.expectMessage("Test Message")
     }
+
+    @Test
+    fun testPubSubMultiNodeWithSigleTone(){
+
+        val sigleton1:ClusterSingleton = ClusterSingleton.get(nodeA.system())
+
+        var proxy1:ActorRef<Topic.Command<String>> = sigleton1.init(SingletonActor.of(Topic.create(String::class.java,
+            "pubsub-topic"), "pubsub-actor"))
+
+        val sigleton2:ClusterSingleton = ClusterSingleton.get(nodeB.system())
+
+        var proxy2:ActorRef<Topic.Command<String>> = sigleton2.init(SingletonActor.of(Topic.create(String::class.java,
+            "pubsub-topic"), "pubsub-actor"))
+
+
+        val probe = nodeA.createTestProbe<String>()
+
+        val probe2 = nodeB.createTestProbe<String>()
+
+        proxy1.tell(Topic.subscribe(probe.ref))
+        proxy2.tell(Topic.subscribe(probe2.ref))
+
+        proxy1.tell(Topic.publish("Test Message"))
+
+        probe.expectMessage("Test Message")
+        probe2.expectMessage("Test Message")
+    }
+
 }
