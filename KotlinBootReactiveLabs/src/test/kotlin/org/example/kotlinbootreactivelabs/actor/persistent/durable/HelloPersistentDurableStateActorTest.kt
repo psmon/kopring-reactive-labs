@@ -10,9 +10,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 
-// 다음 drive에서 확인검증됨
-// runtimeOnly("org.postgresql:r2dbc-postgresql:0.9.3.RELEASE")
-
 class HelloPersistentDurableStateActorTest {
 
     companion object {

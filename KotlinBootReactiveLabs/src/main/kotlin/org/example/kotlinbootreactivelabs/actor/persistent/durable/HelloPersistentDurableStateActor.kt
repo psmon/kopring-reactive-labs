@@ -8,7 +8,7 @@ import org.apache.pekko.persistence.typed.PersistenceId
 import org.apache.pekko.persistence.typed.state.javadsl.CommandHandler
 import org.apache.pekko.persistence.typed.state.javadsl.DurableStateBehavior
 import org.apache.pekko.persistence.typed.state.javadsl.Effect
-import org.example.kotlinbootreactivelabs.actor.persistent.PersitenceSerializable
+import org.example.kotlinbootreactivelabs.actor.PersitenceSerializable
 
 enum class State {
     HAPPY,

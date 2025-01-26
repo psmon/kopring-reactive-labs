@@ -7,7 +7,6 @@ import org.apache.pekko.actor.typed.javadsl.Behaviors
 import org.apache.pekko.actor.typed.javadsl.StashBuffer
 import org.example.kotlinbootreactivelabs.repositories.durable.DurableRepository
 import org.apache.pekko.Done
-import org.example.kotlinbootreactivelabs.actor.persistent.PersitenceSerializable
 import org.example.kotlinbootreactivelabs.actor.state.model.HappyStashState
 import org.example.kotlinbootreactivelabs.actor.state.model.HelloStashState
 

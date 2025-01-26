@@ -8,7 +8,7 @@ import org.apache.pekko.actor.typed.javadsl.AbstractBehavior
 import org.apache.pekko.actor.typed.javadsl.ActorContext
 import org.apache.pekko.actor.typed.javadsl.Behaviors
 import org.apache.pekko.actor.typed.javadsl.Receive
-import org.example.kotlinbootreactivelabs.actor.persistent.PersitenceSerializable
+import org.example.kotlinbootreactivelabs.actor.PersitenceSerializable
 
 
 sealed class CounterCommand : PersitenceSerializable

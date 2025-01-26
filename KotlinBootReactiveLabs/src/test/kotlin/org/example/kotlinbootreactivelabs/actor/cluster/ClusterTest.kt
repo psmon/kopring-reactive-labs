@@ -160,6 +160,9 @@ class ClusterTest {
         shardRegion2.tell(ShardingEnvelope("counter1", GetCount(testProbe2.ref())))
         testProbe2.expectMessage(CounterState(6 + givenInItCount))
 
+        counter1.tell(GetCount(testProbe2.ref()))
+        testProbe2.expectMessage(CounterState(6 + givenInItCount))
+
         // Resion2 at counter2
         shardRegion2.tell(ShardingEnvelope("counter2", Increment(3)))
         shardRegion2.tell(ShardingEnvelope("counter2", GetCount(testProbe2.ref())))

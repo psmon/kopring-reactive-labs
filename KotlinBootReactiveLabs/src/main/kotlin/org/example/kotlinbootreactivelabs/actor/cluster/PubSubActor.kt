@@ -1,6 +1,6 @@
 package org.example.kotlinbootreactivelabs.actor.cluster
 
-import org.example.kotlinbootreactivelabs.actor.persistent.PersitenceSerializable
+import org.example.kotlinbootreactivelabs.actor.PersitenceSerializable
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
