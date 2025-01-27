@@ -2,11 +2,17 @@ package org.example.kotlinbootreactivelabs.actor.sse
 
 import org.apache.pekko.actor.typed.ActorRef
 import org.apache.pekko.actor.typed.Behavior
+import org.apache.pekko.actor.typed.SupervisorStrategy
 import org.apache.pekko.actor.typed.javadsl.AbstractBehavior
 import org.apache.pekko.actor.typed.javadsl.ActorContext
 import org.apache.pekko.actor.typed.javadsl.Behaviors
 import org.apache.pekko.actor.typed.javadsl.Receive
 import org.apache.pekko.actor.typed.pubsub.Topic
+import org.apache.pekko.cluster.typed.ClusterSingleton
+import org.apache.pekko.cluster.typed.SingletonActor
+import org.example.kotlinbootreactivelabs.actor.cluster.CounterActor
+import org.example.kotlinbootreactivelabs.actor.cluster.CounterCommand
+import java.time.Duration
 import java.util.*
 
 sealed class UserEventCommand
@@ -60,7 +66,15 @@ class UserEventActor(
 
     private fun subscribeToTopic(topicName: String) {
         val topic = topics.getOrPut(topicName) {
-            context.spawn(Topic.create(UserEventCommand::class.java, topicName), topicName)
+            //context.spawn(Topic.create(UserEventCommand::class.java, topicName), topicName)
+
+            val sigleton:ClusterSingleton = ClusterSingleton.get(context.system)
+
+            var proxyActor: ActorRef<Topic.Command<UserEventCommand>> = sigleton.init(
+                SingletonActor.of(
+                    Topic.create(UserEventCommand::class.java, topicName), topicName)
+            )
+            proxyActor
         }
         topic.tell(Topic.subscribe(context.self))
     }

@@ -2,14 +2,25 @@ package org.example.kotlinbootreactivelabs.actor
 
 import org.apache.pekko.actor.typed.ActorRef
 import org.apache.pekko.actor.typed.Behavior
+import org.apache.pekko.actor.typed.SupervisorStrategy
 import org.apache.pekko.actor.typed.javadsl.AbstractBehavior
 import org.apache.pekko.actor.typed.javadsl.ActorContext
 import org.apache.pekko.actor.typed.javadsl.Behaviors
 import org.apache.pekko.actor.typed.javadsl.Receive
 import org.apache.pekko.actor.typed.pubsub.Topic
+import org.apache.pekko.cluster.sharding.typed.javadsl.ClusterSharding
+import org.apache.pekko.cluster.sharding.typed.javadsl.Entity
+import org.apache.pekko.cluster.sharding.typed.javadsl.EntityRef
+import org.apache.pekko.cluster.sharding.typed.javadsl.EntityTypeKey
+import org.apache.pekko.cluster.typed.ClusterSingleton
+import org.apache.pekko.cluster.typed.SingletonActor
+import org.example.kotlinbootreactivelabs.actor.cluster.CounterActor
+import org.example.kotlinbootreactivelabs.actor.cluster.CounterCommand
+import org.example.kotlinbootreactivelabs.actor.cluster.CounterState
 import org.example.kotlinbootreactivelabs.actor.sse.AddEvent
 import org.example.kotlinbootreactivelabs.actor.sse.UserEventActor
 import org.example.kotlinbootreactivelabs.actor.sse.UserEventCommand
+import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
 
 sealed class MainStageActorCommand
@@ -41,7 +52,14 @@ class MainStageActor private constructor(
     private fun onGetOrCreateUserEventActor(command: GetOrCreateUserEventActor): Behavior<MainStageActorCommand> {
         val actorKey = "${command.brandId}-${command.userId}"
         val userEventActor = userEventActors.computeIfAbsent(actorKey) {
-            context.spawn(UserEventActor.create(command.brandId, command.userId), actorKey)
+
+            val sigleton:ClusterSingleton = ClusterSingleton.get(context.system)
+
+            var proxyActor:ActorRef<UserEventCommand> = sigleton.init(
+                SingletonActor.of(
+                    UserEventActor.create(command.brandId, command.userId), actorKey)
+            )
+            proxyActor
         }
         command.replyTo.tell(userEventActor)
         return this
@@ -49,10 +67,17 @@ class MainStageActor private constructor(
 
     private fun onPublishToTopic(command: PublishToTopic): Behavior<MainStageActorCommand> {
         val topic = topics.getOrPut(command.topic) {
-            context.spawn(Topic.create(UserEventCommand::class.java, command.topic), command.topic)
+
+            val sigleton:ClusterSingleton = ClusterSingleton.get(context.system)
+
+            var proxyActor: ActorRef<Topic.Command<UserEventCommand>> = sigleton.init(
+                SingletonActor.of(
+                    Topic.create(UserEventCommand::class.java, command.topic), command.topic)
+            )
+
+            proxyActor
         }
         topic.tell(Topic.publish(AddEvent(command.message)))
         return this
     }
-
 }

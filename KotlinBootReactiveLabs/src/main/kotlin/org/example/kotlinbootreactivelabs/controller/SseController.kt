@@ -6,6 +6,7 @@ import org.apache.pekko.actor.typed.ActorRef
 import org.apache.pekko.actor.typed.ActorSystem
 import org.apache.pekko.actor.typed.javadsl.AskPattern
 import org.apache.pekko.actor.typed.javadsl.Behaviors
+import org.apache.pekko.cluster.sharding.typed.javadsl.EntityRef
 import org.example.kotlinbootreactivelabs.actor.GetOrCreateUserEventActor
 import org.example.kotlinbootreactivelabs.actor.MainStageActor
 import org.example.kotlinbootreactivelabs.actor.MainStageActorCommand
@@ -42,7 +43,7 @@ class SseController(private val akka: AkkaConfiguration) {
 
         val userEventActor = response as ActorRef<UserEventCommand>
 
-        return Flux.interval(Duration.ofSeconds(1))
+        return Flux.interval(Duration.ofSeconds(3))
             .flatMap {
                 mono {
                     val response = AskPattern.ask(

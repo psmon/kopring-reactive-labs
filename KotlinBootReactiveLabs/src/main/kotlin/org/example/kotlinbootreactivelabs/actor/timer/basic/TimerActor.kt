@@ -32,7 +32,7 @@ class TimerActor private constructor(
     }
 
     init {
-        timerKey = timers.startTimerAtFixedRate(TimerLoop, Duration.ofSeconds(1))
+        timerKey = timers.startTimerAtFixedRate(TimerLoop, Duration.ofSeconds(10))
         //timers.startSingleTimer(TimerStop, Duration.ofSeconds(5))
     }
 
