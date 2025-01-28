@@ -1,5 +1,7 @@
 package org.example.kotlinbootreactivelabs.actor
 
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.apache.pekko.actor.typed.ActorRef
 import org.apache.pekko.actor.typed.Behavior
 import org.apache.pekko.actor.typed.SupervisorStrategy
@@ -24,8 +26,17 @@ import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
 
 sealed class MainStageActorCommand : PersitenceSerializable
-data class GetOrCreateUserEventActor(val brandId: String, val userId: String, val replyTo: ActorRef<Any>) : MainStageActorCommand()
-data class PublishToTopic(val topic: String, val message: String) : MainStageActorCommand()
+
+data class GetOrCreateUserEventActor @JsonCreator constructor(
+    @JsonProperty("brandId") val brandId: String,
+    @JsonProperty("userId") val userId: String,
+    @JsonProperty("replyTo") val replyTo: ActorRef<Any>
+) : MainStageActorCommand()
+
+data class PublishToTopic @JsonCreator constructor(
+    @JsonProperty("topic") val topic: String,
+    @JsonProperty("message") val message: String
+) : MainStageActorCommand()
 
 sealed class MainStageActorResponse
 

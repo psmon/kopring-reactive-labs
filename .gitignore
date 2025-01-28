@@ -37,3 +37,4 @@ out/
 .vscode/
 infra/testLambda/out
 /springweb/src/jmh/generated
+*.salive
