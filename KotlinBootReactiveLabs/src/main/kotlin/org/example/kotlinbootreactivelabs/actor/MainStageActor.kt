@@ -60,36 +60,43 @@ class MainStageActor private constructor(
             .build()
     }
 
+    // For SES Client
     private fun onGetOrCreateUserEventActor(command: GetOrCreateUserEventActor): Behavior<MainStageActorCommand> {
+
+        val topicA = topics.getOrPut(command.brandId) {
+            val topicActor = context.spawn(Topic.create(UserEventCommand::class.java, command.brandId), command.brandId)
+            topicActor
+        }
+
+        val topicB = topics.getOrPut(command.userId) {
+            val topicActor = context.spawn(Topic.create(UserEventCommand::class.java, command.userId), command.userId)
+            topicActor
+        }
+
         val actorKey = "${command.brandId}-${command.userId}"
         val userEventActor = userEventActors.computeIfAbsent(actorKey) {
-
             val sigleton:ClusterSingleton = ClusterSingleton.get(context.system)
-
             var proxyActor:ActorRef<UserEventCommand> = sigleton.init(
                 SingletonActor.of(
                     UserEventActor.create(command.brandId, command.userId), actorKey)
             )
             proxyActor
         }
+
+        topicA.tell(Topic.subscribe(userEventActor))
+        topicB.tell(Topic.subscribe(userEventActor))
+
         command.replyTo.tell(userEventActor)
         return this
     }
 
+    // For Rest API
     private fun onPublishToTopic(command: PublishToTopic): Behavior<MainStageActorCommand> {
         val topic = topics.getOrPut(command.topic) {
-
-            val sigleton:ClusterSingleton = ClusterSingleton.get(context.system)
-
-            var proxyActor: ActorRef<Topic.Command<UserEventCommand>> = sigleton.init(
-                SingletonActor.of(
-                    Topic.create(UserEventCommand::class.java, command.topic), command.topic)
-            )
-            proxyActor
+            val topicActor = context.spawn(Topic.create(UserEventCommand::class.java, command.topic), command.topic)
+            topicActor
         }
-
         topic.tell(Topic.publish(AddEvent(command.message)))
-
         return this
     }
 }

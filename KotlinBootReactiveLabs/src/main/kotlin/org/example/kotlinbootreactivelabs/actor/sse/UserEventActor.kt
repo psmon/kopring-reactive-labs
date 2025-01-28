@@ -33,7 +33,6 @@ class UserEventActor(
 ) : AbstractBehavior<UserEventCommand>(context) {
 
     private val eventQueue: Queue<String> = LinkedList()
-    private val topics = mutableMapOf<String, ActorRef<Topic.Command<UserEventCommand>>>()
 
     companion object {
         fun create(brandId: String, userId: String): Behavior<UserEventCommand> {
@@ -45,8 +44,6 @@ class UserEventActor(
     }
 
     init {
-        subscribeToTopic(brandId)
-        subscribeToTopic(userId)
     }
 
     override fun createReceive(): Receive<UserEventCommand> {
@@ -69,23 +66,7 @@ class UserEventActor(
         } else {
             command.replyTo.tell("No events available")
         }
-
         return this
     }
 
-    private fun subscribeToTopic(topicName: String) {
-        val topic = topics.getOrPut(topicName) {
-            //context.spawn(Topic.create(UserEventCommand::class.java, topicName), topicName)
-
-            val sigleton:ClusterSingleton = ClusterSingleton.get(context.system)
-
-            var proxyActor: ActorRef<Topic.Command<UserEventCommand>> = sigleton.init(
-                SingletonActor.of(
-                    Topic.create(UserEventCommand::class.java, topicName), topicName)
-            )
-            proxyActor
-        }
-
-        topic.tell(Topic.subscribe(context.self))
-    }
 }
