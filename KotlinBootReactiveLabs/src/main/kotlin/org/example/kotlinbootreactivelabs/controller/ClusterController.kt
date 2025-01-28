@@ -101,11 +101,6 @@ class ClusterController(private val akka: AkkaConfiguration) {
 
             var shardSystem = ClusterSharding.get(akkaSystem)
 
-            val shardRegionOrProxy: ActorRef<ShardingEnvelope<CounterCommand>> =
-                shardSystem.init(
-                    Entity.of(typeKey) { ctx -> CounterActor.create(ctx.entityId) }.withRole("shard")
-                )
-
             var shardCountActor:EntityRef<CounterCommand> = shardSystem.entityRefFor(typeKey, entityId)
 
             val response = AskPattern.ask(
