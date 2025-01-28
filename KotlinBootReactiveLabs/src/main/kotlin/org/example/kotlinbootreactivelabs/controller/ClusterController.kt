@@ -108,9 +108,6 @@ class ClusterController(private val akka: AkkaConfiguration) {
 
             var shardCountActor:EntityRef<CounterCommand> = shardSystem.entityRefFor(typeKey, entityId)
 
-            //{ replyTo: ActorRef<CounterState> -> ShardingEnvelope(entityId, GetCount(replyTo))},
-            //{ replyTo: ActorRef<CounterState> -> ShardingEnvelope(entityId, GetCount(replyTo))},
-
             val response = AskPattern.ask(
                 shardCountActor,
                 { replyTo: ActorRef<CounterState> -> GetCount(replyTo) },

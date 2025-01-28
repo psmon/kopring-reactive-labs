@@ -131,7 +131,8 @@ class ClusterTest {
     fun testSharedCluster(){
         var givenInItCount = 5
 
-        var typeKey = EntityTypeKey.create(CounterCommand::class.java, "Counter")
+        var typeKey1 = EntityTypeKey.create(CounterCommand::class.java, "counter1")
+        var typeKey2 = EntityTypeKey.create(CounterCommand::class.java, "counter2")
 
         val testProbe = nodeA.createTestProbe<CounterState>()
         val testProbe2 = nodeB.createTestProbe<CounterState>()
@@ -139,33 +140,37 @@ class ClusterTest {
         var shard1 = ClusterSharding.get(nodeA.system())
         var shard2 = ClusterSharding.get(nodeB.system())
 
-        var shardRegion1 = shard1.init(Entity.of(typeKey,
+        shard1.init(Entity.of(typeKey1,
+            { entityContext -> CounterActor.create(entityContext.entityId) }
+        ))
+        shard1.init(Entity.of(typeKey2,
+            { entityContext -> CounterActor.create(entityContext.entityId) }
+        ))
+        shard2.init(Entity.of(typeKey2,
+            { entityContext -> CounterActor.create(entityContext.entityId) }
+        ))
+        shard2.init(Entity.of(typeKey1,
             { entityContext -> CounterActor.create(entityContext.entityId) }
         ))
 
-        var shardRegion2 = shard2.init(Entity.of(typeKey,
-            { entityContext -> CounterActor.create(entityContext.entityId) }
-        ))
-
-        var counter1:EntityRef<CounterCommand> = shard1.entityRefFor(typeKey, "counter1")
-        var counter2:EntityRef<CounterCommand> = shard2.entityRefFor(typeKey, "counter2")
+        var counter1Region1: EntityRef<CounterCommand> = shard1.entityRefFor(typeKey1, "counter1")
+        var counter2Region1: EntityRef<CounterCommand> = shard1.entityRefFor(typeKey2, "counter2")
+        var counter1Region2: EntityRef<CounterCommand> = shard2.entityRefFor(typeKey1, "counter1")
+        var counter2Region2: EntityRef<CounterCommand> = shard2.entityRefFor(typeKey2, "counter2")
 
         // Resion1 at counter1
-        shardRegion1.tell(ShardingEnvelope("counter1", Increment(3)))
-        shardRegion1.tell(ShardingEnvelope("counter1", GetCount(testProbe.ref())))
+        counter1Region1.tell(Increment(3))
+        counter1Region1.tell(GetCount(testProbe.ref()))
         testProbe.expectMessage(CounterState(3 + givenInItCount))
 
         // Resion2 at counter1
-        shardRegion2.tell(ShardingEnvelope("counter1", Increment(3)))
-        shardRegion2.tell(ShardingEnvelope("counter1", GetCount(testProbe2.ref())))
-        testProbe2.expectMessage(CounterState(6 + givenInItCount))
-
-        counter1.tell(GetCount(testProbe2.ref()))
+        counter1Region2.tell(Increment(3))
+        counter1Region2.tell(GetCount(testProbe2.ref()))
         testProbe2.expectMessage(CounterState(6 + givenInItCount))
 
         // Resion2 at counter2
-        shardRegion2.tell(ShardingEnvelope("counter2", Increment(3)))
-        shardRegion2.tell(ShardingEnvelope("counter2", GetCount(testProbe2.ref())))
+        counter2Region2.tell(Increment(3))
+        counter2Region2.tell(GetCount(testProbe2.ref()))
         testProbe2.expectMessage(CounterState(3 + givenInItCount))
 
     }

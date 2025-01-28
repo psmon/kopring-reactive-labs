@@ -59,6 +59,7 @@ class AkkaConfiguration {
         logger.info("Starting Akka Actor System with config: $clusterConfigName")
 
         mainStage = ActorSystem.create(MainStageActor.create(), "ClusterSystem", finalConfig)
+
         helloState = ActorSystem.create(HelloStateActor.create(HelloState.HAPPY), "HelloStateActor")
         helloStateStore = ActorSystem.create(HelloStateStoreActor.create("test-perstistid-00001",durableRepository), "helloStateStore")
 
