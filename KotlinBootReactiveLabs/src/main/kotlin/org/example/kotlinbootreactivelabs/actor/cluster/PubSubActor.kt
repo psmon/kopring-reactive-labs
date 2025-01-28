@@ -16,14 +16,14 @@ import org.apache.pekko.actor.typed.pubsub.Topic
 
 sealed class PubSubCommand : PersitenceSerializable
 
-data class PublishMessage @JsonCreator constructor(
-    @JsonProperty("channel") val channel: String,
-    @JsonProperty("message") val message: String
+data class PublishMessage(
+    val channel: String,
+    val message: String
 ) : PubSubCommand()
 
-data class Subscribe @JsonCreator constructor(
-    @JsonProperty("channel") val channel: String,
-    @JsonProperty("subscriber") val subscriber: ActorRef<String>
+data class Subscribe(
+    val channel: String,
+    val subscriber: ActorRef<String>
 ) : PubSubCommand()
 
 class PubSubActor(context: ActorContext<PubSubCommand>) : AbstractBehavior<PubSubCommand>(context) {

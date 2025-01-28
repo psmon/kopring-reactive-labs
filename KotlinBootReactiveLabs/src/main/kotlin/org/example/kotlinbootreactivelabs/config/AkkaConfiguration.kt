@@ -76,16 +76,15 @@ class AkkaConfiguration {
             logger.info("My Application Role HelloB")
         }
 
+        // ClusterSharding
         if (selfMember.hasRole("shard")) {
             logger.info("My Application Role shard")
-            for (i in 1..1000) {
+            for (i in 1..100) {
                 val entityId = "test-$i"
                 var typeKey = EntityTypeKey.create(CounterCommand::class.java, entityId)
-
                 var shardSystem = ClusterSharding.get(mainStage)
-
-                var shardCountActorEx = shardSystem.init(Entity.of(typeKey,
-                    { entityContext -> CounterActor.create(entityContext.entityId) }
+                shardSystem.init(Entity.of(typeKey, {
+                    entityContext -> CounterActor.create(entityContext.entityId) }
                 ))
             }
         }

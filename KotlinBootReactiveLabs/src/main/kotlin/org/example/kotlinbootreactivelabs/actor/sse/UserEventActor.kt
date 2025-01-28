@@ -2,7 +2,6 @@ package org.example.kotlinbootreactivelabs.actor.sse
 
 import org.apache.pekko.actor.typed.ActorRef
 import org.apache.pekko.actor.typed.Behavior
-import org.apache.pekko.actor.typed.SupervisorStrategy
 import org.apache.pekko.actor.typed.javadsl.AbstractBehavior
 import org.apache.pekko.actor.typed.javadsl.ActorContext
 import org.apache.pekko.actor.typed.javadsl.Behaviors
@@ -10,15 +9,14 @@ import org.apache.pekko.actor.typed.javadsl.Receive
 import org.apache.pekko.actor.typed.pubsub.Topic
 import org.apache.pekko.cluster.typed.ClusterSingleton
 import org.apache.pekko.cluster.typed.SingletonActor
-import org.example.kotlinbootreactivelabs.actor.cluster.CounterActor
-import org.example.kotlinbootreactivelabs.actor.cluster.CounterCommand
-import java.time.Duration
+import org.example.kotlinbootreactivelabs.actor.PersitenceSerializable
 import java.util.*
 
-sealed class UserEventCommand
+sealed class UserEventCommand : PersitenceSerializable
 
 data class AddEvent(val message: String) : UserEventCommand()
 data class GetEvent(val replyTo: ActorRef<Any>) : UserEventCommand()
+
 
 class UserEventActor(
     context: ActorContext<UserEventCommand>,

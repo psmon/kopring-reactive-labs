@@ -23,7 +23,7 @@ import org.example.kotlinbootreactivelabs.actor.sse.UserEventCommand
 import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
 
-sealed class MainStageActorCommand
+sealed class MainStageActorCommand : PersitenceSerializable
 data class GetOrCreateUserEventActor(val brandId: String, val userId: String, val replyTo: ActorRef<Any>) : MainStageActorCommand()
 data class PublishToTopic(val topic: String, val message: String) : MainStageActorCommand()
 
@@ -74,10 +74,11 @@ class MainStageActor private constructor(
                 SingletonActor.of(
                     Topic.create(UserEventCommand::class.java, command.topic), command.topic)
             )
-
             proxyActor
         }
+
         topic.tell(Topic.publish(AddEvent(command.message)))
+
         return this
     }
 }

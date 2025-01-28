@@ -13,19 +13,18 @@ import org.example.kotlinbootreactivelabs.actor.PersitenceSerializable
 
 sealed class CounterCommand : PersitenceSerializable
 
-data class Increment @JsonCreator constructor(
-    @JsonProperty("value") val value: Int
+data class Increment(
+    val value: Int
 ) : CounterCommand()
 
-data class GetCount @JsonCreator constructor(
-    @JsonProperty("replyTo") val replyTo: ActorRef<CounterState>
+data class GetCount(
+    val replyTo: ActorRef<CounterState>
 ) : CounterCommand()
-
 
 object GoodByeCounter : CounterCommand()
 
-data class CounterState @JsonCreator constructor(
-    @JsonProperty("count") val count: Int
+data class CounterState(
+    val count: Int
 ) : PersitenceSerializable
 
 
