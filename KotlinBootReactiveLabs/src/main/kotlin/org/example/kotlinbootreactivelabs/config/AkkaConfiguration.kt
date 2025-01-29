@@ -60,9 +60,16 @@ class AkkaConfiguration {
 
         mainStage = ActorSystem.create(MainStageActor.create(), "ClusterSystem", finalConfig)
 
+        // Locla Actor
         helloState = ActorSystem.create(HelloStateActor.create(HelloState.HAPPY), "HelloStateActor")
         helloStateStore = ActorSystem.create(HelloStateStoreActor.create("test-perstistid-00001",durableRepository), "helloStateStore")
 
+        if(clusterConfigName.isEmpty()){
+            logger.info("Cluster Config is Empty - Skip Cluster Init")
+            return
+        }
+
+        // Cluster Init
         val selfMember = Cluster.get(mainStage).selfMember()
 
         if (selfMember.hasRole("seed")) {

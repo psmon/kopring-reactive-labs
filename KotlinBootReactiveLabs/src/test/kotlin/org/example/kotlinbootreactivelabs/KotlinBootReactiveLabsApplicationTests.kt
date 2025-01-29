@@ -29,6 +29,7 @@ class KotlinBootReactiveLabsApplicationTests {
         val testModel = TestModel("test", 1L)
         println("testModelId: $testModel.id")
 
+        // Actor 작동 Test
         val response = AskPattern.ask(
             akka.getHelloState(),
             { replyTo: ActorRef<Any> -> Hello("Hello", replyTo) },
@@ -36,11 +37,7 @@ class KotlinBootReactiveLabsApplicationTests {
             akka.getScheduler()
         ).toCompletableFuture();
 
-        response.get().let {
-            println(it)
-        }
-
+        println("ActorResponse -  ${response.get()}")
     }
-
 }
 
