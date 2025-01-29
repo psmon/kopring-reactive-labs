@@ -1,5 +1,7 @@
 package org.example.kotlinbootreactivelabs.actor.discovery
 
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.apache.pekko.actor.typed.ActorRef
 import org.apache.pekko.actor.typed.Behavior
 import org.apache.pekko.actor.typed.javadsl.AbstractBehavior
@@ -8,11 +10,20 @@ import org.apache.pekko.actor.typed.javadsl.Behaviors
 import org.apache.pekko.actor.typed.javadsl.Receive
 import org.apache.pekko.actor.typed.receptionist.Receptionist
 import org.apache.pekko.actor.typed.receptionist.ServiceKey
+import org.example.kotlinbootreactivelabs.actor.PersitenceSerializable
 
-sealed class PingServiceActorCommand
-data class Ping(val message: String, val replyTo:ActorRef<PingServiceActorCommand>) : PingServiceActorCommand()
-data class Pong(val message: String) : PingServiceActorCommand()
-object AutoPing : PingServiceActorCommand()
+sealed class PingServiceActorCommand : PersitenceSerializable
+
+data class Ping @JsonCreator constructor(
+    @JsonProperty("message") val message: String,
+    @JsonProperty("replyTo") val replyTo: ActorRef<PingServiceActorCommand>
+) : PingServiceActorCommand()
+
+data class Pong @JsonCreator constructor(
+    @JsonProperty("message") val message: String
+) : PingServiceActorCommand()
+
+object AutoPing: PingServiceActorCommand()
 
 class PingServiceActor(context: ActorContext<PingServiceActorCommand>) : AbstractBehavior<PingServiceActorCommand>(context) {
 

@@ -7,35 +7,31 @@ import org.apache.pekko.actor.typed.pubsub.Topic
 import org.apache.pekko.cluster.typed.Cluster
 import org.apache.pekko.cluster.typed.ClusterSingleton
 import org.apache.pekko.cluster.typed.SingletonActor
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import kotlin.test.Test
 
 class PubSubActorTest {
 
-    companion object{
-        private lateinit var nodeA: ActorTestKit
-        private lateinit var nodeB: ActorTestKit
+    private lateinit var nodeA: ActorTestKit
+    private lateinit var nodeB: ActorTestKit
 
-        @BeforeAll
-        @JvmStatic
-        fun setup(){
-            val clusterConfigA = ConfigFactory.load("cluster1.conf")
-            val clusterConfigB = ConfigFactory.load("cluster2.conf")
+    @BeforeEach
+    fun setup(){
+        val clusterConfigA = ConfigFactory.load("cluster1.conf")
+        val clusterConfigB = ConfigFactory.load("cluster2.conf")
 
-            nodeA = ActorTestKit.create("ClusterSystem",clusterConfigA)
-            nodeB = ActorTestKit.create("ClusterSystem",clusterConfigB)
+        nodeA = ActorTestKit.create("ClusterSystem",clusterConfigA)
+        nodeB = ActorTestKit.create("ClusterSystem",clusterConfigB)
 
-            val clusterA = Cluster.get(nodeA.system())
-            val clusterB = Cluster.get(nodeB.system())
-        }
+        val clusterA = Cluster.get(nodeA.system())
+        val clusterB = Cluster.get(nodeB.system())
+    }
 
-        @AfterAll
-        @JvmStatic
-        fun teardown() {
-            nodeB.shutdownTestKit()
-            nodeA.shutdownTestKit()
-        }
+    @AfterEach
+    fun teardown() {
+        nodeB.shutdownTestKit()
+        nodeA.shutdownTestKit()
     }
 
     @Test
