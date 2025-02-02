@@ -25,10 +25,13 @@ repositories {
     mavenCentral()
 }
 
-var akka_version = "2.7.0"
+var akka_version = "2.6.2"
 val swagger_version = "2.2.0"
 val scala_version = "2.13"
 val pekko_version = "1.1.2"
+
+val pekko_kafka_version = "1.1.0"
+
 val pekko_r2dbc_version = "1.0.0"
 val pekko_jdbc_version = "1.1.0"
 
@@ -82,8 +85,13 @@ dependencies {
 
     // Classic Actor
     // implementation("org.apache.pekko:pekko-actor_$scala_version:$pekko_version")
-    // implementation("org.apache.pekko:pekko-stream_$scala_version:$pekko_version")
-    //implementation("org.apache.pekko:pekko-cluster-tools_$scala_version:$pekko_version")
+    // implementation("org.apache.pekko:pekko-cluster-tools_$scala_version:$pekko_version")
+
+    // Actor Streams
+    implementation("org.apache.pekko:pekko-stream_$scala_version:$pekko_version")
+    implementation("org.apache.pekko:pekko-connectors-kafka_$scala_version:$pekko_kafka_version")
+    implementation("org.apache.pekko:pekko-connectors-kafka-cluster-sharding_$scala_version:$pekko_kafka_version")
+
 
     // Typed Actor
     implementation("org.apache.pekko:pekko-actor-typed_$scala_version:$pekko_version")
