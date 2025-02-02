@@ -7,14 +7,18 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.StringSerializer
 import org.apache.pekko.Done
 import org.apache.pekko.actor.testkit.typed.javadsl.ActorTestKit
+import org.apache.pekko.kafka.ProducerMessage
 import org.apache.pekko.kafka.ProducerSettings
 import org.apache.pekko.kafka.javadsl.Producer
 import org.apache.pekko.stream.Materializer
+import org.apache.pekko.stream.javadsl.Sink
 import org.apache.pekko.stream.javadsl.Source
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.concurrent.CompletionStage
+
+data class PassThrough(val info: String)
 
 // https://pekko.apache.org/docs/pekko-connectors-kafka/current/producer.html
 class ProducerTest {
@@ -53,7 +57,9 @@ class ProducerTest {
                 .map { value -> ProducerRecord<String, String>(topic, value) }
                 .runWith(Producer.plainSink(producerSettings), materializer)
 
-        waitForSomeCompleted(5)
+        done.toCompletableFuture().get()
+
+        done.thenAccept { result -> println("Done: $result") }
     }
 
     @Test
@@ -68,7 +74,75 @@ class ProducerTest {
             Source.single(message)
                 .runWith(Producer.plainSink(producerSettings), materializer)
 
-        waitForSomeCompleted(3)
+        done.toCompletableFuture().get()
+
+        done.thenAccept { result -> println("Done: $result") }
+    }
+
+    @Test
+    fun testProducerSingleMessageWithPassThrough() {
+        val materializer = Materializer.createMaterializer(akkaSystem.system())
+        val topic = "test_topic1"
+        val key = "singleKey"
+        val value = "singleValue"
+        val passThrough = PassThrough("passThroughInfo")
+
+        val single: ProducerMessage.Envelope<String, String, PassThrough> =
+            ProducerMessage.single(
+                ProducerRecord(topic, key, value),
+                passThrough
+            )
+
+        val done: CompletionStage<Done> = Source.single(single)
+            .via(Producer.flexiFlow(producerSettings))
+            .runWith(Sink.foreach { result ->
+                when (result) {
+                    is ProducerMessage.Result<*, *, *> -> {
+                        val res = result as ProducerMessage.Result<String, String, PassThrough>
+                        val record = res.message().record()
+                        val meta = res.metadata()
+                        println("${meta.topic()}/${meta.partition()} ${meta.offset()}: ${record.value()} with passThrough: ${res.message().passThrough().info}")
+                    }
+                    else -> println("unknown result")
+                }
+            }, materializer)
+
+        done.toCompletableFuture().get()
+
+        done.thenAccept { result -> println("Done: $result") }
+    }
+
+    @Test
+    fun testProducerMultiMessageWithPassThrough(){
+        val materializer = Materializer.createMaterializer(akkaSystem.system())
+        val passThrough = PassThrough("passThroughInfo")
+
+        val multiMessage: ProducerMessage.Envelope<String, String, PassThrough> =
+            ProducerMessage.multi(
+                listOf(
+                    ProducerRecord("test_topic1", "multiKey1","multiValue1"),
+                    ProducerRecord("test_topic2", "multiKey2","multiValue2")
+                ),
+                passThrough
+            )
+
+        val done: CompletionStage<Done> = Source.single(multiMessage)
+            .via(Producer.flexiFlow(producerSettings))
+            .runWith(Sink.foreach { result ->
+                when (result) {
+                    is ProducerMessage.Result<*, *, *> -> {
+                        val res = result as ProducerMessage.Result<String, String, PassThrough>
+                        val record = res.message().record()
+                        val meta = res.metadata()
+                        println("${meta.topic()}/${meta.partition()} ${meta.offset()}: ${record.value()} with passThrough: ${res.message().passThrough().info}")
+                    }
+                    else -> println("unknown result")
+                }
+            }, materializer)
+
+        done.toCompletableFuture().get()
+
+        done.thenAccept { result -> println("Done: $result") }
     }
 
 }
