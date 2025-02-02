@@ -9,6 +9,9 @@ import org.apache.pekko.actor.testkit.typed.javadsl.ActorTestKit
 import org.apache.pekko.actor.typed.ActorRef
 import org.apache.pekko.actor.typed.ActorSystem
 import org.apache.pekko.actor.typed.javadsl.AskPattern
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.stream.javadsl.Sink
+import org.apache.pekko.stream.javadsl.Source
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
@@ -43,6 +46,37 @@ class ConcurrentTest {
             .thenApplyAsync { result -> result + " World" }
 
         val result = future.get()
+        
+        assertEquals("Hello World", result)
+    }
+
+    @Test
+    fun testCompletableFutureWithStream() {
+        // Test using CompletableFuture with Java Streams to concatenate strings asynchronously
+        val future = CompletableFuture.supplyAsync {
+            listOf("Hello")
+                .stream()
+                .map { it + " World" }
+                .findFirst()
+                .orElse("")
+        }
+
+        val result = future.get()
+
+        assertEquals("Hello World", result)
+    }
+
+    @Test
+    fun testCompletableFutureWithAkkaStream() {
+        // Test using Akka Streams to concatenate strings asynchronously
+        val materializer = Materializer.createMaterializer(actorSystem.system())
+
+        val source = Source.single("Hello")
+            .map { it + " World" }
+            .runWith(Sink.head(), materializer)
+
+        val result = source.toCompletableFuture().get()
+
         assertEquals("Hello World", result)
     }
 
@@ -54,6 +88,7 @@ class ConcurrentTest {
             val part1 = async { input + " World" }
             part1.await()
         }
+
         assertEquals("Hello World", result)
     }
 
