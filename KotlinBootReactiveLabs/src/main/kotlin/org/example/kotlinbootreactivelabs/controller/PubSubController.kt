@@ -3,32 +3,31 @@ package org.example.kotlinbootreactivelabs.controller
 
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.apache.pekko.actor.typed.ActorRef
-import org.apache.pekko.actor.typed.javadsl.AskPattern
-import org.example.kotlinbootreactivelabs.actor.GetOrCreateUserEventActor
-import org.example.kotlinbootreactivelabs.actor.MainStageActor
 import org.example.kotlinbootreactivelabs.actor.MainStageActorCommand
 import org.example.kotlinbootreactivelabs.actor.PublishToTopic
-import org.example.kotlinbootreactivelabs.actor.sse.AddEvent
-import org.example.kotlinbootreactivelabs.actor.sse.UserEventCommand
 import org.example.kotlinbootreactivelabs.config.AkkaConfiguration
-import org.example.kotlinbootreactivelabs.ws.WebSocketSessionManager
+import org.example.kotlinbootreactivelabs.ws.actor.UserSessionCommand
+import org.example.kotlinbootreactivelabs.ws.actor.UserSessionCommand.SendMessageToSession
+import org.example.kotlinbootreactivelabs.ws.base.SessionManager
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
-import java.time.Duration
 
 @RestController
 @RequestMapping("/api/pubsub")
 @Tag(name = "PubSub Controller")
 class PubSubController(
-    private val sessionManager: WebSocketSessionManager,
+    private val sessionManager: SessionManager,
     private val akka: AkkaConfiguration
 ) {
     private val mainStageActor: ActorRef<MainStageActorCommand> = akka.getMainStage()
 
-    @PostMapping("/send-to-session")
+    private val sessionManagerActor = akka.sessionManagerActor()
+
+    @PostMapping("/publish-to-session")
     fun sendMessageToSession(@RequestParam sessionId: String, @RequestBody message: String): Mono<String> {
         return Mono.fromCallable {
             sessionManager.sendReactiveMessageToSession(sessionId, message)
+            sessionManagerActor.tell(SendMessageToSession(sessionId, message))
             "Message sent to session $sessionId"
         }
     }
@@ -37,6 +36,7 @@ class PubSubController(
     fun sendMessageToTopic(@RequestParam topic: String, @RequestBody message: String): Mono<String> {
         return Mono.fromCallable {
             sessionManager.sendReactiveMessageToTopic(topic, message)
+            sessionManagerActor.tell(UserSessionCommand.SendMessageToTopic(topic, message))
             "Message sent to topic $topic"
         }
     }

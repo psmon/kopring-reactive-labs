@@ -1,4 +1,4 @@
-package org.example.kotlinbootreactivelabs.ws
+package org.example.kotlinbootreactivelabs.ws.base
 
 import labs.common.model.EventTextMessage
 import labs.common.model.MessageFrom
@@ -12,9 +12,9 @@ import java.util.concurrent.ConcurrentHashMap
 
 
 @Component
-class WebSocketSessionManager(private val sendService : SendService) {
+class SessionManager(private val sendService : SendService) {
 
-    private val logger = LoggerFactory.getLogger(WebSocketSessionManager::class.java)
+    private val logger = LoggerFactory.getLogger(SessionManager::class.java)
 
     val reactiveSessions = ConcurrentHashMap<String, ReactiveWebSocketSession>()
 
@@ -24,7 +24,7 @@ class WebSocketSessionManager(private val sendService : SendService) {
         reactiveSessions[session.id] = session
         logger.info("[SessionManager] Connected: ${session.id}")
 
-        sendService.sendReactiveEventTextMessage(session, EventTextMessage(
+        sendService.sendEventTextMessage(session, EventTextMessage(
             type = MessageType.INFO,
             message = "You are connected - ${session.id}",
             from = MessageFrom.SYSTEM,
@@ -38,13 +38,12 @@ class WebSocketSessionManager(private val sendService : SendService) {
         logger.info("[SessionManager] Disconnected: ${session.id}")
     }
 
-
     fun subscribeReactiveToTopic(sessionId: String, topic: String) {
         topicSubscriptions.computeIfAbsent(topic) { mutableSetOf() }.add(sessionId)
         logger.info("Session $sessionId subscribed to topic $topic")
 
         reactiveSessions[sessionId]?.let {
-            sendService.sendReactiveEventTextMessage(
+            sendService.sendEventTextMessage(
                 it, EventTextMessage(
                     type = MessageType.PUSH,
                     message = "You are subscribed to topic $topic",
@@ -61,7 +60,7 @@ class WebSocketSessionManager(private val sendService : SendService) {
         logger.info("Session $sessionId unsubscribed from topic $topic")
 
         reactiveSessions[sessionId]?.let {
-            sendService.sendReactiveEventTextMessage(
+            sendService.sendEventTextMessage(
                 it, EventTextMessage(
                     type = MessageType.PUSH,
                     message = "You are unsubscribed to topic $topic",
@@ -75,7 +74,7 @@ class WebSocketSessionManager(private val sendService : SendService) {
 
     fun sendReactiveMessageToSession(sessionId: String, message: String) {
         reactiveSessions[sessionId]?.let {
-            sendService.sendReactiveEventTextMessage(
+            sendService.sendEventTextMessage(
                 it, EventTextMessage(
                     type = MessageType.PUSH,
                     message = message,
@@ -90,7 +89,7 @@ class WebSocketSessionManager(private val sendService : SendService) {
     fun sendReactiveMessageToTopic(topic: String, message: String) {
         topicSubscriptions[topic]?.forEach { sessionId ->
             reactiveSessions[sessionId]?.let {
-                sendService.sendReactiveEventTextMessage(
+                sendService.sendEventTextMessage(
                     it, EventTextMessage(
                         type = MessageType.PUSH,
                         message = message,

@@ -7,6 +7,7 @@ import jakarta.annotation.PreDestroy
 import org.apache.pekko.actor.typed.ActorRef
 import org.apache.pekko.actor.typed.ActorSystem
 import org.apache.pekko.actor.typed.SupervisorStrategy
+import org.apache.pekko.actor.typed.javadsl.AskPattern
 import org.apache.pekko.actor.typed.javadsl.Behaviors
 import org.apache.pekko.cluster.sharding.typed.javadsl.ClusterSharding
 import org.apache.pekko.cluster.sharding.typed.javadsl.Entity
@@ -14,8 +15,11 @@ import org.apache.pekko.cluster.sharding.typed.javadsl.EntityTypeKey
 import org.apache.pekko.cluster.typed.Cluster
 import org.apache.pekko.cluster.typed.ClusterSingleton
 import org.apache.pekko.cluster.typed.SingletonActor
+import org.example.kotlinbootreactivelabs.actor.CreateSocketSessionManager
 import org.example.kotlinbootreactivelabs.actor.MainStageActor
 import org.example.kotlinbootreactivelabs.actor.MainStageActorCommand
+import org.example.kotlinbootreactivelabs.actor.MainStageActorResponse
+import org.example.kotlinbootreactivelabs.actor.SocketSessionManagerCreated
 import org.example.kotlinbootreactivelabs.actor.cluster.CounterActor
 import org.example.kotlinbootreactivelabs.actor.cluster.CounterCommand
 import org.example.kotlinbootreactivelabs.actor.state.HelloState
@@ -24,10 +28,13 @@ import org.example.kotlinbootreactivelabs.actor.state.HelloStateActorCommand
 import org.example.kotlinbootreactivelabs.actor.state.store.HelloStateStoreActor
 import org.example.kotlinbootreactivelabs.actor.state.store.HelloStateStoreActorCommand
 import org.example.kotlinbootreactivelabs.repositories.durable.DurableRepository
+import org.example.kotlinbootreactivelabs.ws.actor.UserSessionCommand
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.time.Duration
+import java.util.concurrent.CompletableFuture
 
 @Configuration
 class AkkaConfiguration {
@@ -35,6 +42,8 @@ class AkkaConfiguration {
     private val logger: org.slf4j.Logger = LoggerFactory.getLogger(AkkaConfiguration::class.java)
 
     private lateinit var mainStage: ActorSystem<MainStageActorCommand>
+
+    private lateinit var sessionManagerActor: CompletableFuture<ActorRef<UserSessionCommand>>
 
     private lateinit var helloState: ActorSystem<HelloStateActorCommand>
 
@@ -59,6 +68,20 @@ class AkkaConfiguration {
         logger.info("Starting Akka Actor System with config: $clusterConfigName")
 
         mainStage = ActorSystem.create(MainStageActor.create(), "ClusterSystem", finalConfig)
+
+        sessionManagerActor = AskPattern.ask(
+            mainStage,
+            { replyTo: ActorRef<MainStageActorResponse> -> CreateSocketSessionManager(replyTo) },
+            Duration.ofSeconds(3),
+            mainStage.scheduler()
+        ).toCompletableFuture().thenApply { res ->
+            if (res is SocketSessionManagerCreated) {
+                logger.info("SocketSessionManager created: ${res.actorRef.path()}")
+                res.actorRef
+            } else {
+                throw IllegalStateException("Failed to create SocketSessionManager")
+            }
+        }
 
         // Locla Actor
         helloState = ActorSystem.create(HelloStateActor.create(HelloState.HAPPY), "HelloStateActor")
@@ -116,6 +139,11 @@ class AkkaConfiguration {
 
     fun getMainStage(): ActorSystem<MainStageActorCommand> {
         return mainStage
+    }
+
+    @Bean
+    fun sessionManagerActor(): ActorRef<UserSessionCommand> {
+        return sessionManagerActor.get()
     }
 
     fun getSingleCount(): ActorRef<CounterCommand> {

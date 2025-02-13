@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Client</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-right: 20px;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #1e1e1e;
+            color: #ffffff;
+            border: 1px solid #333333;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #333333;
+        }
+        button:active {
+            background-color: #555555;
+        }
+        #messages {
+            width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid #333333;
+            padding: 10px;
+            background-color: #1e1e1e;
+            display: flex;
+            flex-direction: column;
+        }
+        .message {
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        .message.system {
+            background-color: #333333;
+            align-self: center;
+        }
+        .message.user {
+            background-color: #0078ff;
+            color: #ffffff;
+            align-self: flex-end;
+        }
+        .message.counselor {
+            background-color: #e5e5ea;
+            color: #000000;
+            align-self: flex-start;
+        }
+    </style>
+</head>
+<body>
+<div class="controls">
+    <h1>WebSocket Test</h1>
+    <button onclick="connectWebSocket()">Connect to WebSocket</button>
+    <button onclick="disconnectWebSocket()">Disconnect WebSocket</button>
+    <button onclick="sendMessage()">Send Hello</button>
+    <button onclick="subscribeTopic()">Subscribe to Topic</button>
+    <button onclick="unsubscribeTopic()">Unsubscribe from Topic</button>
+</div>
+<div id="messages"></div>
+
+<script>
+    let socket;
+
+    function connectWebSocket() {
+        socket = new WebSocket("ws://localhost:8080/ws-actor");
+
+        socket.onopen = function(event) {
+            console.log("WebSocket is open now.");
+            displayMessage("WebSocket is open now.");
+        };
+
+        socket.onmessage = function(event) {
+            console.log("Received from server: " + event.data);
+            displayMessage(event.data);
+        };
+
+        socket.onclose = function(event) {
+            console.log("WebSocket is closed now.");
+            displayMessage("WebSocket is closed now.");
+        };
+
+        socket.onerror = function(error) {
+            console.error("WebSocket error: " + error);
+            displayMessage("WebSocket error: " + error);
+        };
+    }
+
+    function disconnectWebSocket() {
+        if (socket) {
+            socket.close();
+            console.log("WebSocket is closed.");
+        } else {
+            console.log("WebSocket is not connected.");
+        }
+    }
+
+    function sendMessage() {
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            socket.send("hello");
+            console.log("Sent: hello");
+        } else {
+            console.log("WebSocket is not open.");
+        }
+    }
+
+    function subscribeTopic() {
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            const topic = prompt("Enter topic to subscribe:");
+            if (topic) {
+                socket.send("subscribe:" + topic);
+                console.log("Subscribed to topic: " + topic);
+            }
+        } else {
+            console.log("WebSocket is not open.");
+        }
+    }
+
+    function unsubscribeTopic() {
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            const topic = prompt("Enter topic to unsubscribe:");
+            if (topic) {
+                socket.send("unsubscribe:" + topic);
+                console.log("Unsubscribed from topic: " + topic);
+            }
+        } else {
+            console.log("WebSocket is not open.");
+        }
+    }
+
+    function displayMessage(message) {
+        const messagesDiv = document.getElementById("messages");
+        const messageDiv = document.createElement("div");
+        messageDiv.className = "message system"; // 기본적으로 시스템 메시지로 설정
+
+        try {
+            const parsedMessage = JSON.parse(message);
+            messageDiv.className = `message ${parsedMessage.from.toLowerCase()}`;
+            messageDiv.textContent = JSON.stringify(parsedMessage, null, 2); // JSON을 가독성 있게 표현
+        } catch (e) {
+            messageDiv.textContent = message; // JSON 파싱에 실패하면 원본 메시지 출력
+        }
+
+        messagesDiv.appendChild(messageDiv);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+</script>
+</body>
+</html>

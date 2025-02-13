@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.apache.pekko.actor.typed.ActorRef
 import org.apache.pekko.actor.typed.Behavior
+import org.apache.pekko.actor.typed.SupervisorStrategy
 import org.apache.pekko.actor.typed.javadsl.AbstractBehavior
 import org.apache.pekko.actor.typed.javadsl.ActorContext
 import org.apache.pekko.actor.typed.javadsl.Behaviors
@@ -14,9 +15,16 @@ import org.apache.pekko.cluster.typed.SingletonActor
 import org.example.kotlinbootreactivelabs.actor.sse.AddEvent
 import org.example.kotlinbootreactivelabs.actor.sse.UserEventActor
 import org.example.kotlinbootreactivelabs.actor.sse.UserEventCommand
+import org.example.kotlinbootreactivelabs.ws.actor.SessionManagerActor
+import org.example.kotlinbootreactivelabs.ws.actor.UserSessionCommand
 import java.util.concurrent.ConcurrentHashMap
 
 sealed class MainStageActorCommand : PersitenceSerializable
+data class CreateSocketSessionManager(val replyTo: ActorRef<MainStageActorResponse>) : MainStageActorCommand()
+
+sealed class MainStageActorResponse : PersitenceSerializable
+data class SocketSessionManagerCreated(val actorRef: ActorRef<UserSessionCommand>) : MainStageActorResponse()
+
 
 data class GetOrCreateUserEventActor @JsonCreator constructor(
     @JsonProperty("brandId") val brandId: String,
@@ -29,7 +37,6 @@ data class PublishToTopic @JsonCreator constructor(
     @JsonProperty("message") val message: String
 ) : MainStageActorCommand()
 
-sealed class MainStageActorResponse
 
 class MainStageActor private constructor(
     private val context: ActorContext<MainStageActorCommand>,
@@ -48,7 +55,22 @@ class MainStageActor private constructor(
         return newReceiveBuilder()
             .onMessage(GetOrCreateUserEventActor::class.java, this::onGetOrCreateUserEventActor)
             .onMessage(PublishToTopic::class.java, this::onPublishToTopic)
+            .onMessage(CreateSocketSessionManager::class.java, this::onSocketSessionManager)
             .build()
+    }
+
+    // For WebSocketClient
+    private fun onSocketSessionManager(command: CreateSocketSessionManager): Behavior<MainStageActorCommand> {
+        val sessionManagerActor = context.spawn(
+            Behaviors.supervise(SessionManagerActor.create())
+                .onFailure(SupervisorStrategy.resume()),
+            "sessionManagerActor"
+        )
+        context.watch(sessionManagerActor)
+
+        command.replyTo.tell(SocketSessionManagerCreated(sessionManagerActor))
+
+        return this
     }
 
     // For SES Client
