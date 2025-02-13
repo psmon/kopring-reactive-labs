@@ -12,6 +12,7 @@ import org.example.kotlinbootreactivelabs.actor.state.HelloCountResponse
 import org.example.kotlinbootreactivelabs.actor.state.HelloResponse
 import org.example.kotlinbootreactivelabs.actor.state.HelloStateActorCommand
 import org.example.kotlinbootreactivelabs.config.AkkaConfiguration
+import org.example.kotlinbootreactivelabs.module.AkkaUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -38,6 +39,19 @@ class ActorController @Autowired constructor(private val akka: AkkaConfiguration
                 akka.getScheduler()
             ).toCompletableFuture().await()
 
+            val helloResponse = response as HelloResponse
+            "helloResponse.message: ${helloResponse.message}"
+        }
+    }
+
+    @PostMapping("/hello2")
+    fun helloCommandByMono(): Mono<String> {
+        return AkkaUtils.askActorByMono(
+            helloState,
+            { replyTo: ActorRef<Any> -> Hello("Hello", replyTo) },
+            Duration.ofSeconds(3),
+            akka.getMainStage()
+        ).map { response ->
             val helloResponse = response as HelloResponse
             "helloResponse.message: ${helloResponse.message}"
         }
