@@ -117,10 +117,13 @@ class SocketActorHandlerTest {
 
         latch.await(10, TimeUnit.SECONDS)
 
-        // Step1: Subscribe to topic
+        // Step1: Connected to WebSocket
+        assertContainsText("You are connected")
+
+        // Step2: Subscribe to topic
         assertContainsText("You are subscribed to topic test-topic")
 
-        // Step2: Receive message from topic by REST
+        // Step3: Receive message from topic by REST
         assertContainsText("Hello Subscribers")
     }
 

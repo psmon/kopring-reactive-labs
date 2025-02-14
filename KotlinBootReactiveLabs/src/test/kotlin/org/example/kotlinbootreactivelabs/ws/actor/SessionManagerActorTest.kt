@@ -20,14 +20,10 @@ class SessionManagerActorTest {
     companion object {
         private val testKit = ActorTestKit.create()
 
-        @Mock
-        private lateinit var sendService: SendService
-
         @BeforeAll
         @JvmStatic
         fun setup() {
             // Setup code if needed
-            MockitoAnnotations.openMocks(this)
         }
 
         @AfterAll
