@@ -2,11 +2,13 @@
 
 코프링에서 Reactive Weboscket을 먼저구현하고, 웹소켓핸들러를 액터모델로 연결해 풍성한 기능을 확장하는 연구프로젝트입니다.  
 
-준비된 샘플
 
-- base : 액터종속 없는 기본버전으로~ 기본적인 pub/sub을 로컬Class로 구현
-- actor : base버전의 로컬Class를 액터버전으로 확장
+StepByStep Sample Code
 
+- base : 액터종속 없는 기본버전으로~ 기본적인 pub/sub을 Class로 구현
+- actor : base 버전의 pub/sub Class를 액터버전으로 확장
+- messenger : 액터모델 이용한 간단한 채팅 기능구현 ( 예정 )
+- messenger-cluster : messenger 버전을 클러스터로 확장 ( 예정 )
 
 # Spring WebFlux (`org.springframework.web.reactive.socket`) vs Spring MVC 웹소켓 비교
 
