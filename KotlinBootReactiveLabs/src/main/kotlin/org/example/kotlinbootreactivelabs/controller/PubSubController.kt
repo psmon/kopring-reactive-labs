@@ -8,6 +8,7 @@ import org.example.kotlinbootreactivelabs.actor.PublishToTopic
 import org.example.kotlinbootreactivelabs.config.AkkaConfiguration
 import org.example.kotlinbootreactivelabs.ws.actor.UserSessionCommand
 import org.example.kotlinbootreactivelabs.ws.actor.UserSessionCommand.SendMessageToSession
+import org.example.kotlinbootreactivelabs.ws.actor.UserSessionCommandResponse
 import org.example.kotlinbootreactivelabs.ws.base.SessionManager
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
@@ -24,10 +25,11 @@ class PubSubController(
     private val sessionManagerActor = akka.sessionManagerActor()
 
     @PostMapping("/publish-to-session")
-    fun sendMessageToSession(@RequestParam sessionId: String, @RequestBody message: String): Mono<String> {
+    fun sendMessageToSession(@RequestParam sessionId: String, @RequestBody message: String): Any? {
         return Mono.fromCallable {
             sessionManager.sendReactiveMessageToSession(sessionId, message)
-            sessionManagerActor.tell(SendMessageToSession(sessionId, message))
+            val noSender = akka.getMainStage().ignoreRef<UserSessionCommandResponse>()
+            sessionManagerActor.tell(SendMessageToSession(sessionId, message, noSender ))
             "Message sent to session $sessionId"
         }
     }
@@ -36,7 +38,8 @@ class PubSubController(
     fun sendMessageToTopic(@RequestParam topic: String, @RequestBody message: String): Mono<String> {
         return Mono.fromCallable {
             sessionManager.sendReactiveMessageToTopic(topic, message)
-            sessionManagerActor.tell(UserSessionCommand.SendMessageToTopic(topic, message))
+            val noSender = akka.getMainStage().ignoreRef<UserSessionCommandResponse>()
+            sessionManagerActor.tell(UserSessionCommand.SendMessageToTopic(topic, message, noSender))
             "Message sent to topic $topic"
         }
     }

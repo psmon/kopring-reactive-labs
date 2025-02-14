@@ -3,6 +3,7 @@ package org.example.kotlinbootreactivelabs.ws.actor
 import labs.common.model.EventTextMessage
 import labs.common.model.MessageFrom
 import labs.common.model.MessageType
+import org.apache.pekko.actor.typed.ActorRef
 import org.apache.pekko.actor.typed.Behavior
 import org.apache.pekko.actor.typed.javadsl.AbstractBehavior
 import org.apache.pekko.actor.typed.javadsl.ActorContext
@@ -15,12 +16,16 @@ import java.util.concurrent.ConcurrentHashMap
 
 
 sealed class UserSessionCommand {
-    data class AddSession(val session: WebSocketSession) : UserSessionCommand()
-    data class RemoveSession(val session: WebSocketSession) : UserSessionCommand()
-    data class SubscribeToTopic(val sessionId: String, val topic: String) : UserSessionCommand()
-    data class UnsubscribeFromTopic(val sessionId: String, val topic: String) : UserSessionCommand()
-    data class SendMessageToSession(val sessionId: String, val message: String) : UserSessionCommand()
-    data class SendMessageToTopic(val topic: String, val message: String) : UserSessionCommand()
+    data class AddSession(val session: WebSocketSession, val replyTo: ActorRef<UserSessionCommandResponse>) : UserSessionCommand()
+    data class RemoveSession(val session: WebSocketSession, val replyTo: ActorRef<UserSessionCommandResponse>) : UserSessionCommand()
+    data class SubscribeToTopic(val sessionId: String, val topic: String, val replyTo: ActorRef<UserSessionCommandResponse>) : UserSessionCommand()
+    data class UnsubscribeFromTopic(val sessionId: String, val topic: String, val replyTo: ActorRef<UserSessionCommandResponse>) : UserSessionCommand()
+    data class SendMessageToSession(val sessionId: String, val message: String, val replyTo: ActorRef<UserSessionCommandResponse>) : UserSessionCommand()
+    data class SendMessageToTopic(val topic: String, val message: String, val replyTo: ActorRef<UserSessionCommandResponse>) : UserSessionCommand()
+}
+
+sealed class UserSessionCommandResponse {
+    data class Information(val message: String) : UserSessionCommandResponse()
 }
 
 class SessionManagerActor private constructor(
@@ -62,12 +67,17 @@ class SessionManagerActor private constructor(
             jsondata = null,
         ))
 
+        command.replyTo.tell(UserSessionCommandResponse.Information("Session added ${command.session.id}"))
+
         return Behaviors.same()
     }
 
     private fun onRemoveSession(command: UserSessionCommand.RemoveSession): Behavior<UserSessionCommand> {
         sessions.remove(command.session.id)
         logger.info("[SessionManagerActor] Disconnected: ${command.session.id}")
+
+        command.replyTo.tell(UserSessionCommandResponse.Information("Session removed ${command.session.id}"))
+
         return Behaviors.same()
     }
 
@@ -86,6 +96,8 @@ class SessionManagerActor private constructor(
                 )
             )
         }
+
+        command.replyTo.tell(UserSessionCommandResponse.Information("Subscribed to topic ${command.topic}"))
 
         return Behaviors.same()
     }
@@ -106,6 +118,8 @@ class SessionManagerActor private constructor(
             )
         }
 
+        command.replyTo.tell(UserSessionCommandResponse.Information("Unsubscribed from topic ${command.topic}"))
+
         return Behaviors.same()
     }
 
@@ -122,6 +136,9 @@ class SessionManagerActor private constructor(
                 )
             )
         }
+
+        command.replyTo.tell(UserSessionCommandResponse.Information("Message sent to session ${command.sessionId}"))
+
         return Behaviors.same()
     }
 
@@ -140,6 +157,9 @@ class SessionManagerActor private constructor(
                 )
             }
         }
+
+        command.replyTo.tell(UserSessionCommandResponse.Information("Message sent to topic ${command.topic}"))
+
         return Behaviors.same()
     }
 }
