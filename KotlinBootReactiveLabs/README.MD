@@ -2,6 +2,10 @@
 
 This repository is for learning Reactive Stream using Spring Boot WebFlux.
 
+## Concurrent Programming
+
+- [ConcurrentTest](src/test/kotlin/org/example/kotlinbootreactivelabs/actor/guide/ConcurrentTest.kt)
+
 ## Reactive
 
 ![alt text](../Docs/springboot-reactive.png)
@@ -15,6 +19,10 @@ Testing WebSocket using Reactive
 - http://localhost:8080/api-doc
 - http://localhost:8080/ws-rx-test.html
 - https://wiki.webnori.com/display/AKKA/Reactive+WebSocket+With+Kotlin
+
+## Kafka with AkkaStreams
+
+- https://pekko.apache.org/docs/pekko-connectors-kafka/current/home.html#project-info
 
 
 ## ActorModel by Pekko
