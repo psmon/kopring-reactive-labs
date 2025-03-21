@@ -1,0 +1,93 @@
+﻿@page "/sse-test"
+@using System.Net.Http
+@using Microsoft.AspNetCore.Components
+@using Microsoft.JSInterop
+
+@inject HttpClient Http
+@inject IJSRuntime JS
+
+<PageTitle>SSE Test</PageTitle>
+
+<MudAlert Severity="Severity.Info">웹소켓보다 경량화된 단방향 푸시테스트 페이지입니다.</MudAlert>
+
+<MudTextField ShrinkLabel @bind-Value="brandId" Label="BrandId" Variant="Variant.Text"></MudTextField>
+<MudTextField ShrinkLabel @bind-Value="userId" Label="UserId" Variant="Variant.Text"></MudTextField>
+<MudButton Variant="Variant.Filled" OnClick="StartSSE" Color="Color.Primary">Start SSE</MudButton>
+
+
+<MudTable Items="@Elements" Hover="true" Breakpoint="Breakpoint.Sm"  LoadingProgressColor="Color.Info">
+    <HeaderContent>
+        <MudTh>Nr</MudTh>
+        <MudTh>Time</MudTh>
+        <MudTh>Message</MudTh>                
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Nr">@context.Number</MudTd>
+        <MudTd DataLabel="Time">@context.LogTime</MudTd>
+        <MudTd DataLabel="Message">@context.Message</MudTd>        
+    </RowTemplate>
+</MudTable>
+
+
+@code {
+
+    class EventElement
+    {
+        public int Number { get; set; }
+        public DateTime LogTime { get; set; }
+        public string Message { get; set; }        
+    }
+
+    private int messageCount = 0;
+    private string brandId;
+    private string userId;
+    private List<string> eventMessages = new List<string>();
+    private List<EventElement> Elements = new List<EventElement>();
+
+    private async Task StartSSE()
+    {
+        if (string.IsNullOrEmpty(brandId) || string.IsNullOrEmpty(userId))
+        {
+            // 경고 메시지 표시
+            return;
+        }
+
+        var url = $"http://localhost:8080/sse?brandId={brandId}&userId={userId}";
+        await JS.InvokeVoidAsync("startSSE", url, DotNetObjectReference.Create(this));
+    }
+
+    [JSInvokable]
+    public void ReceiveMessage(string message)
+    {
+        if (message == "No events available" && messageCount > 0)
+        {
+            return;
+        }
+
+        if (message == "No events available" && messageCount ==0)
+        {
+
+            Elements.Add(new EventElement()
+                {
+                    Number = messageCount + 1,
+                    LogTime = DateTime.Now,
+                    Message = "OnStart SSE Client"
+                });
+            messageCount++;
+
+        }
+        else
+        {
+            Elements.Add(new EventElement()
+                {
+                    Number = messageCount + 1,
+                    LogTime = DateTime.Now,
+                    Message = message
+                });
+
+            messageCount++;
+        }
+
+        InvokeAsync(StateHasChanged);
+    }
+}

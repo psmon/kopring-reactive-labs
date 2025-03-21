@@ -1,5 +1,6 @@
 package org.example.kotlinbootreactivelabs.controller
 
+import io.swagger.v3.oas.annotations.Operation
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.reactor.mono
 import org.apache.pekko.actor.typed.ActorRef
@@ -31,6 +32,8 @@ class SseController(private val akka: AkkaConfiguration) {
     private val logger = LoggerFactory.getLogger(SseController::class.java)
     private val mainStageActor: ActorRef<MainStageActorCommand> = akka.getMainStage()
 
+    @Operation(summary = "Server Sent Events",
+        description = "SSE규약을 사용해 이벤트를 단방향 수신받을수 있습니다.")
     @GetMapping("/sse", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
     fun streamEvents(@RequestParam brandId: String, @RequestParam userId: String): Flux<String> {
 

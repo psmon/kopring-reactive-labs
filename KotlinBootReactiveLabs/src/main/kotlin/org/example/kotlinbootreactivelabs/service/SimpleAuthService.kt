@@ -1,6 +1,5 @@
 package org.example.kotlinbootreactivelabs.service
 
-import org.example.kotlinbootreactivelabs.error.LoginFailedException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import io.jsonwebtoken.SignatureAlgorithm
@@ -9,7 +8,7 @@ import java.util.*
 import javax.crypto.SecretKey
 
 @Component
-class SimpleAuthServiceAuthService {
+class SimpleAuthService {
 
     private val secretKey: SecretKey = Keys.secretKeyFor(SignatureAlgorithm.HS256)
     private val refreshTokenSecretKey: SecretKey = Keys.secretKeyFor(SignatureAlgorithm.HS256)

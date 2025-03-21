@@ -1,4 +1,4 @@
-package org.example.kotlinbootreactivelabs.ws.actor
+package org.example.kotlinbootreactivelabs.ws.actor.basic
 
 import labs.common.model.EventTextMessage
 import labs.common.model.MessageFrom
@@ -15,47 +15,47 @@ import org.springframework.web.reactive.socket.WebSocketSession
 import java.util.concurrent.ConcurrentHashMap
 
 
-sealed class UserSessionCommand {
-    data class AddSession(val session: WebSocketSession, val replyTo: ActorRef<UserSessionCommandResponse>) : UserSessionCommand()
-    data class RemoveSession(val session: WebSocketSession, val replyTo: ActorRef<UserSessionCommandResponse>) : UserSessionCommand()
-    data class SubscribeToTopic(val sessionId: String, val topic: String, val replyTo: ActorRef<UserSessionCommandResponse>) : UserSessionCommand()
-    data class UnsubscribeFromTopic(val sessionId: String, val topic: String, val replyTo: ActorRef<UserSessionCommandResponse>) : UserSessionCommand()
-    data class SendMessageToSession(val sessionId: String, val message: String, val replyTo: ActorRef<UserSessionCommandResponse>) : UserSessionCommand()
-    data class SendMessageToTopic(val topic: String, val message: String, val replyTo: ActorRef<UserSessionCommandResponse>) : UserSessionCommand()
+sealed class SimpleSessionCommand {
+    data class SimpleAddSession(val session: WebSocketSession, val replyTo: ActorRef<SimpleUserSessionCommandResponse>) : SimpleSessionCommand()
+    data class SimpleRemoveSession(val session: WebSocketSession, val replyTo: ActorRef<SimpleUserSessionCommandResponse>) : SimpleSessionCommand()
+    data class SimpleSubscribeToTopic(val sessionId: String, val topic: String, val replyTo: ActorRef<SimpleUserSessionCommandResponse>) : SimpleSessionCommand()
+    data class SimpleUnsubscribeFromTopic(val sessionId: String, val topic: String, val replyTo: ActorRef<SimpleUserSessionCommandResponse>) : SimpleSessionCommand()
+    data class SimpleSendMessageToSession(val sessionId: String, val message: String, val replyTo: ActorRef<SimpleUserSessionCommandResponse>) : SimpleSessionCommand()
+    data class SimpleSendMessageToTopic(val topic: String, val message: String, val replyTo: ActorRef<SimpleUserSessionCommandResponse>) : SimpleSessionCommand()
 }
 
-sealed class UserSessionCommandResponse {
-    data class Information(val message: String) : UserSessionCommandResponse()
+sealed class SimpleUserSessionCommandResponse {
+    data class SimpleInformation(val message: String) : SimpleUserSessionCommandResponse()
 }
 
-class SessionManagerActor private constructor(
-    private val context: ActorContext<UserSessionCommand>
-) : AbstractBehavior<UserSessionCommand>(context)  {
+class SimpleSessionManagerActor private constructor(
+    private val context: ActorContext<SimpleSessionCommand>
+) : AbstractBehavior<SimpleSessionCommand>(context)  {
 
-    private val logger = LoggerFactory.getLogger(SessionManagerActor::class.java)
+    private val logger = LoggerFactory.getLogger(SimpleSessionManagerActor::class.java)
     private val sessions = ConcurrentHashMap<String, WebSocketSession>()
     private val topicSubscriptions = ConcurrentHashMap<String, MutableSet<String>>()
 
     private val sendService = SendService()
 
     companion object {
-        fun create(): Behavior<UserSessionCommand> {
-            return Behaviors.setup { context -> SessionManagerActor(context) }
+        fun create(): Behavior<SimpleSessionCommand> {
+            return Behaviors.setup { context -> SimpleSessionManagerActor(context) }
         }
     }
 
-    override fun createReceive(): Receive<UserSessionCommand> {
+    override fun createReceive(): Receive<SimpleSessionCommand> {
         return newReceiveBuilder()
-            .onMessage(UserSessionCommand.AddSession::class.java, this::onAddSession)
-            .onMessage(UserSessionCommand.RemoveSession::class.java, this::onRemoveSession)
-            .onMessage(UserSessionCommand.SubscribeToTopic::class.java, this::onSubscribeToTopic)
-            .onMessage(UserSessionCommand.UnsubscribeFromTopic::class.java, this::onUnsubscribeFromTopic)
-            .onMessage(UserSessionCommand.SendMessageToSession::class.java, this::onSendMessageToSession)
-            .onMessage(UserSessionCommand.SendMessageToTopic::class.java, this::onSendMessageToTopic)
+            .onMessage(SimpleSessionCommand.SimpleAddSession::class.java, this::onAddSession)
+            .onMessage(SimpleSessionCommand.SimpleRemoveSession::class.java, this::onRemoveSession)
+            .onMessage(SimpleSessionCommand.SimpleSubscribeToTopic::class.java, this::onSubscribeToTopic)
+            .onMessage(SimpleSessionCommand.SimpleUnsubscribeFromTopic::class.java, this::onUnsubscribeFromTopic)
+            .onMessage(SimpleSessionCommand.SimpleSendMessageToSession::class.java, this::onSendMessageToSession)
+            .onMessage(SimpleSessionCommand.SimpleSendMessageToTopic::class.java, this::onSendMessageToTopic)
             .build()
     }
 
-    private fun onAddSession(command: UserSessionCommand.AddSession): Behavior<UserSessionCommand> {
+    private fun onAddSession(command: SimpleSessionCommand.SimpleAddSession): Behavior<SimpleSessionCommand> {
         sessions[command.session.id] = command.session
         logger.info("[SessionManagerActor] Connected: ${command.session.id}")
 
@@ -67,21 +67,21 @@ class SessionManagerActor private constructor(
             jsondata = null,
         ))
 
-        command.replyTo.tell(UserSessionCommandResponse.Information("Session added ${command.session.id}"))
+        command.replyTo.tell(SimpleUserSessionCommandResponse.SimpleInformation("Session added ${command.session.id}"))
 
         return Behaviors.same()
     }
 
-    private fun onRemoveSession(command: UserSessionCommand.RemoveSession): Behavior<UserSessionCommand> {
+    private fun onRemoveSession(command: SimpleSessionCommand.SimpleRemoveSession): Behavior<SimpleSessionCommand> {
         sessions.remove(command.session.id)
         logger.info("[SessionManagerActor] Disconnected: ${command.session.id}")
 
-        command.replyTo.tell(UserSessionCommandResponse.Information("Session removed ${command.session.id}"))
+        command.replyTo.tell(SimpleUserSessionCommandResponse.SimpleInformation("Session removed ${command.session.id}"))
 
         return Behaviors.same()
     }
 
-    private fun onSubscribeToTopic(command: UserSessionCommand.SubscribeToTopic): Behavior<UserSessionCommand> {
+    private fun onSubscribeToTopic(command: SimpleSessionCommand.SimpleSubscribeToTopic): Behavior<SimpleSessionCommand> {
         topicSubscriptions.computeIfAbsent(command.topic) { mutableSetOf() }.add(command.sessionId)
         logger.info("Session ${command.sessionId} subscribed to topic ${command.topic}")
 
@@ -97,12 +97,12 @@ class SessionManagerActor private constructor(
             )
         }
 
-        command.replyTo.tell(UserSessionCommandResponse.Information("Subscribed to topic ${command.topic}"))
+        command.replyTo.tell(SimpleUserSessionCommandResponse.SimpleInformation("Subscribed to topic ${command.topic}"))
 
         return Behaviors.same()
     }
 
-    private fun onUnsubscribeFromTopic(command: UserSessionCommand.UnsubscribeFromTopic): Behavior<UserSessionCommand> {
+    private fun onUnsubscribeFromTopic(command: SimpleSessionCommand.SimpleUnsubscribeFromTopic): Behavior<SimpleSessionCommand> {
         topicSubscriptions[command.topic]?.remove(command.sessionId)
         logger.info("Session ${command.sessionId} unsubscribed from topic ${command.topic}")
 
@@ -118,12 +118,12 @@ class SessionManagerActor private constructor(
             )
         }
 
-        command.replyTo.tell(UserSessionCommandResponse.Information("Unsubscribed from topic ${command.topic}"))
+        command.replyTo.tell(SimpleUserSessionCommandResponse.SimpleInformation("Unsubscribed from topic ${command.topic}"))
 
         return Behaviors.same()
     }
 
-    private fun onSendMessageToSession(command: UserSessionCommand.SendMessageToSession): Behavior<UserSessionCommand> {
+    private fun onSendMessageToSession(command: SimpleSessionCommand.SimpleSendMessageToSession): Behavior<SimpleSessionCommand> {
         sessions[command.sessionId]?.let {
             logger.info("Sending message to session ${command.sessionId}: ${command.message}")
             sendService.sendEventTextMessage(
@@ -137,12 +137,12 @@ class SessionManagerActor private constructor(
             )
         }
 
-        command.replyTo.tell(UserSessionCommandResponse.Information("Message sent to session ${command.sessionId}"))
+        command.replyTo.tell(SimpleUserSessionCommandResponse.SimpleInformation("Message sent to session ${command.sessionId}"))
 
         return Behaviors.same()
     }
 
-    private fun onSendMessageToTopic(command: UserSessionCommand.SendMessageToTopic): Behavior<UserSessionCommand> {
+    private fun onSendMessageToTopic(command: SimpleSessionCommand.SimpleSendMessageToTopic): Behavior<SimpleSessionCommand> {
         topicSubscriptions[command.topic]?.forEach { sessionId ->
             sessions[sessionId]?.let {
                 logger.info("Sending message to topic ${command.topic}: ${command.message}")
@@ -158,7 +158,7 @@ class SessionManagerActor private constructor(
             }
         }
 
-        command.replyTo.tell(UserSessionCommandResponse.Information("Message sent to topic ${command.topic}"))
+        command.replyTo.tell(SimpleUserSessionCommandResponse.SimpleInformation("Message sent to topic ${command.topic}"))
 
         return Behaviors.same()
     }

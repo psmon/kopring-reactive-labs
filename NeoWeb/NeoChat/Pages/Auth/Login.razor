@@ -1,0 +1,93 @@
+﻿@page "/login"
+@using System.Text.Json
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<h3>Login</h3>
+
+<EditForm Model="@loginModel" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div>
+        <label for="Id">Id:</label>
+        <InputText id="Id" @bind-Value="loginModel.Id" />
+    </div>
+    <div>
+        <label for="Password">Password:</label>
+        <InputText id="Password" type="password" @bind-Value="loginModel.Password" />
+    </div>
+    <div>
+        <label for="Identifier">Identifier:</label>
+        <InputText id="Identifier" @bind-Value="loginModel.Identifier" />
+    </div>
+    <div>
+        <label for="Nick">Nick:</label>
+        <InputText id="Nick" @bind-Value="loginModel.Nick" />
+    </div>
+    <div>
+        <label for="AuthType">AuthType:</label>
+        <InputText id="AuthType" @bind-Value="loginModel.AuthType" />
+    </div>
+
+
+    <button type="submit">Login</button>
+</EditForm>
+
+@code {
+    private LoginModel loginModel = new LoginModel();
+
+    private async Task HandleValidSubmit()
+    {
+        var queryParams = new Dictionary<string, string>
+        {
+            { "id", loginModel.Id },
+            { "password", loginModel.Password },
+            { "identifier", loginModel.Identifier },
+            { "nick", loginModel.Nick },
+            { "authType", loginModel.AuthType }
+        };
+
+        var content = new FormUrlEncodedContent(new[]
+        {
+            new KeyValuePair<string, string>("sample", loginModel.Id),
+        });
+
+        var queryString = string.Join("&", queryParams.Select(kvp => $"{kvp.Key}={Uri.EscapeDataString(kvp.Value)}"));
+        var response = await Http.PostAsync($"http://localhost:8080/api/auth/login?{queryString}", content);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var responseContent = await response.Content.ReadAsStringAsync();
+            
+            var authResult = JsonSerializer.Deserialize<AuthResult>(responseContent);
+
+            // 인증 토큰을 저장합니다. 예: localStorage, sessionStorage 등
+            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "authToken", authResult.Token);
+            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "refreshToken", authResult.RefreshToken);
+
+            Navigation.NavigateTo("/");
+        }
+        else
+        {
+            // 로그인 실패 처리
+            Console.WriteLine("Login failed");
+        }
+    }
+
+    public class LoginModel
+    {
+        public string Id { get; set; }
+        public string Password { get; set; }
+        public string Identifier { get; set; }
+        public string Nick { get; set; }
+        public string AuthType { get; set; }
+    }
+
+    public class AuthResult
+    {
+        public string Token { get; set; }
+        public string RefreshToken { get; set; }
+    }
+}

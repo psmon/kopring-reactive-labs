@@ -1,0 +1,20 @@
+﻿@page "/"
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Home</PageTitle>
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");
+        if (string.IsNullOrEmpty(token))
+        {
+            Navigation.NavigateTo("/login");
+        }
+    }
+}

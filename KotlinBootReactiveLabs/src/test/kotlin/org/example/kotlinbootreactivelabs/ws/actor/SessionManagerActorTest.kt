@@ -3,7 +3,10 @@ package org.example.kotlinbootreactivelabs.ws.actor
 import org.apache.pekko.actor.testkit.typed.javadsl.ActorTestKit
 import org.apache.pekko.actor.testkit.typed.javadsl.TestProbe
 import org.apache.pekko.actor.typed.ActorRef
-import org.example.kotlinbootreactivelabs.ws.actor.UserSessionCommandResponse.Information
+import org.example.kotlinbootreactivelabs.ws.actor.basic.SimpleSessionManagerActor
+import org.example.kotlinbootreactivelabs.ws.actor.basic.SimpleSessionCommand
+import org.example.kotlinbootreactivelabs.ws.actor.basic.SimpleUserSessionCommandResponse
+import org.example.kotlinbootreactivelabs.ws.actor.basic.SimpleUserSessionCommandResponse.SimpleInformation
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -32,8 +35,8 @@ class SessionManagerActorTest {
 
     @Test
     fun testAddSession() {
-        val sessionManagerActor: ActorRef<UserSessionCommand> = testKit.spawn(SessionManagerActor.create(), "session-manager-actor")
-        val probe: TestProbe<UserSessionCommandResponse> = testKit.createTestProbe()
+        val sessionManagerActor: ActorRef<SimpleSessionCommand> = testKit.spawn(SimpleSessionManagerActor.Companion.create(), "session-manager-actor")
+        val probe: TestProbe<SimpleUserSessionCommandResponse> = testKit.createTestProbe()
 
         val session = Mockito.mock(WebSocketSession::class.java)
         Mockito.`when`(session.id).thenReturn("session1")
@@ -41,16 +44,16 @@ class SessionManagerActorTest {
         Mockito.`when`(session.textMessage(Mockito.anyString())).thenReturn(message)
         Mockito.`when`(session.send(Mockito.any())).thenReturn(Mono.empty())
 
-        sessionManagerActor.tell(UserSessionCommand.AddSession(session, probe.ref))
+        sessionManagerActor.tell(SimpleSessionCommand.SimpleAddSession(session, probe.ref))
 
-        probe.expectMessage(Information("Session added session1"))
+        probe.expectMessage(SimpleInformation("Session added session1"))
 
     }
 
     @Test
     fun testRemoveSession() {
-        val sessionManagerActor: ActorRef<UserSessionCommand> = testKit.spawn(SessionManagerActor.create(), "session-manager-actor")
-        val probe: TestProbe<UserSessionCommandResponse> = testKit.createTestProbe()
+        val sessionManagerActor: ActorRef<SimpleSessionCommand> = testKit.spawn(SimpleSessionManagerActor.Companion.create(), "session-manager-actor")
+        val probe: TestProbe<SimpleUserSessionCommandResponse> = testKit.createTestProbe()
 
         val session = Mockito.mock(WebSocketSession::class.java)
         Mockito.`when`(session.id).thenReturn("session1")
@@ -58,17 +61,17 @@ class SessionManagerActorTest {
         Mockito.`when`(session.textMessage(Mockito.anyString())).thenReturn(message)
         Mockito.`when`(session.send(Mockito.any())).thenReturn(Mono.empty())
 
-        sessionManagerActor.tell(UserSessionCommand.AddSession(session, probe.ref))
-        sessionManagerActor.tell(UserSessionCommand.RemoveSession(session, probe.ref))
+        sessionManagerActor.tell(SimpleSessionCommand.SimpleAddSession(session, probe.ref))
+        sessionManagerActor.tell(SimpleSessionCommand.SimpleRemoveSession(session, probe.ref))
 
-        probe.expectMessage(Information("Session added session1"))
-        probe.expectMessage(Information("Session removed session1"))
+        probe.expectMessage(SimpleInformation("Session added session1"))
+        probe.expectMessage(SimpleInformation("Session removed session1"))
     }
 
     @Test
     fun testSubscribeToTopic() {
-        val sessionManagerActor: ActorRef<UserSessionCommand> = testKit.spawn(SessionManagerActor.create(), "session-manager-actor")
-        val probe: TestProbe<UserSessionCommandResponse> = testKit.createTestProbe()
+        val simpleSessionManagerActor: ActorRef<SimpleSessionCommand> = testKit.spawn(SimpleSessionManagerActor.Companion.create(), "session-manager-actor")
+        val probe: TestProbe<SimpleUserSessionCommandResponse> = testKit.createTestProbe()
 
         val session = Mockito.mock(WebSocketSession::class.java)
         Mockito.`when`(session.id).thenReturn("session1")
@@ -76,18 +79,18 @@ class SessionManagerActorTest {
         Mockito.`when`(session.textMessage(Mockito.anyString())).thenReturn(message)
         Mockito.`when`(session.send(Mockito.any())).thenReturn(Mono.empty())
 
-        sessionManagerActor.tell(UserSessionCommand.AddSession(session, probe.ref))
-        sessionManagerActor.tell(UserSessionCommand.SubscribeToTopic("session1", "topic1", probe.ref))
+        simpleSessionManagerActor.tell(SimpleSessionCommand.SimpleAddSession(session, probe.ref))
+        simpleSessionManagerActor.tell(SimpleSessionCommand.SimpleSubscribeToTopic("session1", "topic1", probe.ref))
 
-        probe.expectMessage(Information("Session added session1"))
-        probe.expectMessage(Information("Subscribed to topic topic1"))
+        probe.expectMessage(SimpleInformation("Session added session1"))
+        probe.expectMessage(SimpleInformation("Subscribed to topic topic1"))
 
     }
 
     @Test
     fun testUnsubscribeFromTopic() {
-        val sessionManagerActor: ActorRef<UserSessionCommand> = testKit.spawn(SessionManagerActor.create(), "session-manager-actor")
-        val probe: TestProbe<UserSessionCommandResponse> = testKit.createTestProbe()
+        val simpleSessionManagerActor: ActorRef<SimpleSessionCommand> = testKit.spawn(SimpleSessionManagerActor.Companion.create(), "session-manager-actor")
+        val probe: TestProbe<SimpleUserSessionCommandResponse> = testKit.createTestProbe()
 
         val session = Mockito.mock(WebSocketSession::class.java)
         Mockito.`when`(session.id).thenReturn("session1")
@@ -95,12 +98,12 @@ class SessionManagerActorTest {
         Mockito.`when`(session.textMessage(Mockito.anyString())).thenReturn(message)
         Mockito.`when`(session.send(Mockito.any())).thenReturn(Mono.empty())
 
-        sessionManagerActor.tell(UserSessionCommand.AddSession(session, probe.ref))
-        sessionManagerActor.tell(UserSessionCommand.SubscribeToTopic("session1", "topic1", probe.ref))
-        sessionManagerActor.tell(UserSessionCommand.UnsubscribeFromTopic("session1", "topic1", probe.ref))
+        simpleSessionManagerActor.tell(SimpleSessionCommand.SimpleAddSession(session, probe.ref))
+        simpleSessionManagerActor.tell(SimpleSessionCommand.SimpleSubscribeToTopic("session1", "topic1", probe.ref))
+        simpleSessionManagerActor.tell(SimpleSessionCommand.SimpleUnsubscribeFromTopic("session1", "topic1", probe.ref))
 
-        probe.expectMessage(Information("Session added session1"))
-        probe.expectMessage(Information("Subscribed to topic topic1"))
-        probe.expectMessage(Information("Unsubscribed from topic topic1"))
+        probe.expectMessage(SimpleInformation("Session added session1"))
+        probe.expectMessage(SimpleInformation("Subscribed to topic topic1"))
+        probe.expectMessage(SimpleInformation("Unsubscribed from topic topic1"))
     }
 }

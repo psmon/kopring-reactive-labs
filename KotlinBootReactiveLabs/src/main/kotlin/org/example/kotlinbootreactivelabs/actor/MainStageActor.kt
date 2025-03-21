@@ -15,15 +15,23 @@ import org.apache.pekko.cluster.typed.SingletonActor
 import org.example.kotlinbootreactivelabs.actor.sse.AddEvent
 import org.example.kotlinbootreactivelabs.actor.sse.UserEventActor
 import org.example.kotlinbootreactivelabs.actor.sse.UserEventCommand
-import org.example.kotlinbootreactivelabs.ws.actor.SessionManagerActor
-import org.example.kotlinbootreactivelabs.ws.actor.UserSessionCommand
+import org.example.kotlinbootreactivelabs.ws.actor.basic.SimpleSessionCommand
+import org.example.kotlinbootreactivelabs.ws.actor.basic.SimpleSessionManagerActor
+import org.example.kotlinbootreactivelabs.ws.actor.chat.UserSessionCommand
+import org.example.kotlinbootreactivelabs.ws.actor.chat.SupervisorChannelActor
+import org.example.kotlinbootreactivelabs.ws.actor.chat.SupervisorChannelCommand
+import org.example.kotlinbootreactivelabs.ws.actor.chat.UserSessionManagerActor
 import java.util.concurrent.ConcurrentHashMap
 
 sealed class MainStageActorCommand : PersitenceSerializable
+data class CreateSimpleSocketSessionManager(val replyTo: ActorRef<MainStageActorResponse>) : MainStageActorCommand()
 data class CreateSocketSessionManager(val replyTo: ActorRef<MainStageActorResponse>) : MainStageActorCommand()
+data class CreateSupervisorChannelActor(val replyTo: ActorRef<MainStageActorResponse>) : MainStageActorCommand()
 
 sealed class MainStageActorResponse : PersitenceSerializable
 data class SocketSessionManagerCreated(val actorRef: ActorRef<UserSessionCommand>) : MainStageActorResponse()
+data class SocketSimpleSessionManagerCreated(val actorRef: ActorRef<SimpleSessionCommand>) : MainStageActorResponse()
+data class SupervisorChannelActorCreated(val actorRef: ActorRef<SupervisorChannelCommand>) : MainStageActorResponse()
 
 
 data class GetOrCreateUserEventActor @JsonCreator constructor(
@@ -56,13 +64,43 @@ class MainStageActor private constructor(
             .onMessage(GetOrCreateUserEventActor::class.java, this::onGetOrCreateUserEventActor)
             .onMessage(PublishToTopic::class.java, this::onPublishToTopic)
             .onMessage(CreateSocketSessionManager::class.java, this::onSocketSessionManager)
+            .onMessage(CreateSimpleSocketSessionManager::class.java, this::onSimpleSocketSessionManager)
+            .onMessage(CreateSupervisorChannelActor::class.java, this::onCreateSupervisorChannelActor)
             .build()
     }
 
-    // For WebSocketClient
+    // For SimpleWebSocketSessionManager
+    private fun onSimpleSocketSessionManager(command: CreateSimpleSocketSessionManager): Behavior<MainStageActorCommand> {
+        val simpleSessionManagerActor = context.spawn(
+            Behaviors.supervise(SimpleSessionManagerActor.create())
+                .onFailure(SupervisorStrategy.resume()),
+            "simpleSessionManagerActor"
+        )
+        context.watch(simpleSessionManagerActor)
+
+        command.replyTo.tell(SocketSimpleSessionManagerCreated(simpleSessionManagerActor))
+
+        return this
+    }
+
+    // For Counselor Chat
+    private fun onCreateSupervisorChannelActor(command: CreateSupervisorChannelActor): Behavior<MainStageActorCommand> {
+        val supervisorChannelActor = context.spawn(
+            Behaviors.supervise(SupervisorChannelActor.create())
+                .onFailure(SupervisorStrategy.resume()),
+            "supervisorChannelActor"
+        )
+        context.watch(supervisorChannelActor)
+
+        command.replyTo.tell(SupervisorChannelActorCreated(supervisorChannelActor))
+
+        return this
+    }
+
+    // For Chat WebSocketClient
     private fun onSocketSessionManager(command: CreateSocketSessionManager): Behavior<MainStageActorCommand> {
         val sessionManagerActor = context.spawn(
-            Behaviors.supervise(SessionManagerActor.create())
+            Behaviors.supervise(UserSessionManagerActor.create())
                 .onFailure(SupervisorStrategy.resume()),
             "sessionManagerActor"
         )

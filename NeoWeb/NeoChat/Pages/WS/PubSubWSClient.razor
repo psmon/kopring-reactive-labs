@@ -1,0 +1,131 @@
+﻿@page "/ws-pubsub"
+@using Microsoft.JSInterop
+@using NeoChat.Util
+@using System.Text.Json
+
+@inject IJSRuntime JS
+
+<PageTitle>WebSocket Client</PageTitle>
+
+<MudAlert Severity="Severity.Info">웹소켓의 다양한 기능을 수행 테스트 페이지</MudAlert>
+
+<MudButton Variant="Variant.Filled" OnClick="ConnectWebSocket" Color="Color.Primary">Connect to WebSocket</MudButton>
+<MudButton Variant="Variant.Filled" OnClick="DisconnectWebSocket" Color="Color.Primary">Disconnect WebSocket</MudButton>
+<MudButton Variant="Variant.Filled" OnClick="SendMessage" Color="Color.Primary">Send Hello</MudButton>
+<MudButton Variant="Variant.Filled" OnClick="SubscribeTopic" Color="Color.Primary">Subscribe to Topic</MudButton>
+<MudButton Variant="Variant.Filled" OnClick="UnsubscribeTopic" Color="Color.Primary">Unsubscribe from Topic</MudButton>
+
+<MudTable Items="@Elements" Hover="true" Breakpoint="Breakpoint.Sm" LoadingProgressColor="Color.Info">
+    <HeaderContent>
+        <MudTh>Nr</MudTh>
+        <MudTh>Time</MudTh>
+        
+        <MudTh>Type</MudTh>
+        <MudTh>Message</MudTh>
+        <MudTh>From</MudTh>
+        <MudTh>Id</MudTh>
+        <MudTh>JsonData</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Nr">@context.Number</MudTd>
+        <MudTd DataLabel="Time">@context.LogTime</MudTd>
+
+        <MudTd DataLabel="Type">@context.Type</MudTd>
+        <MudTd DataLabel="Message">@context.Message</MudTd>
+        <MudTd DataLabel="From">@context.From</MudTd>
+        <MudTd DataLabel="Id">@context.Id</MudTd>
+        <MudTd DataLabel="JsonData">@context.JsonData</MudTd>
+    </RowTemplate>
+</MudTable>
+
+@code {
+
+    class EventElement
+    {
+        public int Number { get; set; }
+        public DateTime LogTime { get; set; }        
+        public string Id { get; set; }
+        public string From { get; set; }
+        public string Type { get; set; }
+        public string Message { get; set; }
+        public string JsonData { get; set; }
+    }
+    
+    private List<EventElement> Elements = new List<EventElement>();
+
+    private async Task ConnectWebSocket()
+    {
+        await JS.InvokeVoidAsync("webSocketClient.connect", "ws://localhost:8080/ws-actor", DotNetObjectReference.Create(this));
+    }
+
+    private async Task DisconnectWebSocket()
+    {
+        await JS.InvokeVoidAsync("webSocketClient.disconnect");
+    }
+
+    private async Task SendMessage()
+    {
+        await JS.InvokeVoidAsync("webSocketClient.sendMessage", "hello");
+    }
+
+    private async Task SubscribeTopic()
+    {
+        var topic = await JS.InvokeAsync<string>("prompt", "Enter topic to subscribe:");
+        if (!string.IsNullOrEmpty(topic))
+        {
+            await JS.InvokeVoidAsync("webSocketClient.subscribeTopic", topic);
+        }
+    }
+
+    private async Task UnsubscribeTopic()
+    {
+        var topic = await JS.InvokeAsync<string>("prompt", "Enter topic to unsubscribe:");
+        if (!string.IsNullOrEmpty(topic))
+        {
+            await JS.InvokeVoidAsync("webSocketClient.unsubscribeTopic", topic);
+        }
+    }
+
+    [JSInvokable]
+    public void ReceiveMessage(string messageText)
+    {
+        if (JsonUtil.IsJson(messageText))
+        {
+            using (JsonDocument doc = JsonDocument.Parse(messageText))
+            {
+                JsonElement root = doc.RootElement;
+                string type = root.GetProperty("type").GetString();
+                string message = root.GetProperty("message").GetString();
+                string from = root.GetProperty("from").GetString();
+                string id = root.GetProperty("id").GetString();
+                string jsonData = root.GetProperty("jsondata").GetString();
+
+                Elements.Add(new EventElement()
+                {
+                    Number = Elements.Count + 1,
+                    LogTime = DateTime.Now,
+                    Type = type,
+                    Message = message,
+                    From = from,
+                    Id = id,
+                    JsonData = jsonData
+                });
+            }
+        }
+        else
+        {
+            Elements.Add(new EventElement()
+                {
+                    Number = Elements.Count + 1,
+                    LogTime = DateTime.Now,
+                    Type = "NA",
+                    Message = messageText,
+                    From = "NA",
+                    Id = "NA",
+                    JsonData = "NA"
+                });            
+        }
+
+        InvokeAsync(StateHasChanged);
+    }
+}

@@ -10,8 +10,9 @@ import org.springframework.web.reactive.socket.WebSocketSession
 import reactor.core.publisher.Mono
 
 @Component
-class SocketHandler(private val sessionManager: SessionManager,
-                    private val sendService: SendService) : WebSocketHandler {
+class SocketHandler(
+    private val sessionManager: SessionManager,
+    private val sendService: SendService) : WebSocketHandler {
 
     override fun handle(session: WebSocketSession): Mono<Void> {
         sessionManager.addSession(session)
@@ -23,12 +24,10 @@ class SocketHandler(private val sessionManager: SessionManager,
                     payload.startsWith("subscribe:") -> {
                         val topic = payload.substringAfter("subscribe:")
                         sessionManager.subscribeReactiveToTopic(session.id, topic)
-                        Mono.empty<Void>()
                     }
                     payload.startsWith("unsubscribe:") -> {
                         val topic = payload.substringAfter("unsubscribe:")
                         sessionManager.unsubscribeReactiveFromTopic(session.id, topic)
-                        Mono.empty<Void>()
                     }
                     else -> {
                         sendService.sendEventTextMessage(
@@ -40,9 +39,9 @@ class SocketHandler(private val sessionManager: SessionManager,
                                 jsondata = null,
                             )
                         )
-                        Mono.empty<Void>()
                     }
                 }
+                Mono.empty<Void>()
             }
             .then()
             .doFinally { sessionManager.removeSession(session) }

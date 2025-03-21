@@ -6,7 +6,7 @@ import org.example.kotlinbootreactivelabs.error.LoginFailedException
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
-import org.example.kotlinbootreactivelabs.service.SimpleAuthServiceAuthService
+import org.example.kotlinbootreactivelabs.service.SimpleAuthService
 import org.example.kotlinbootreactivelabs.service.AuthResponse
 import org.example.kotlinbootreactivelabs.service.TokenClaims
 import org.springframework.web.bind.annotation.*
@@ -16,7 +16,7 @@ import reactor.core.publisher.Mono
 @RestController
 @RequestMapping("/api/auth")
 @Tag(name = "Auth Controller")
-class AuthController(private val authService: SimpleAuthServiceAuthService) {
+class AuthController(private val authService: SimpleAuthService) {
 
     @PostMapping("/login")
     fun login(@RequestParam id: String, @RequestParam password: String, @RequestParam identifier: String, @RequestParam nick: String, @RequestParam authType: String): Mono<AuthResponse> {

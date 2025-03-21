@@ -1,6 +1,6 @@
 package org.example.kotlinbootreactivelabs.ws
 
-import org.example.kotlinbootreactivelabs.ws.actor.SocketActorHandler
+import org.example.kotlinbootreactivelabs.ws.actor.basic.SocketActorHandler
 import org.example.kotlinbootreactivelabs.ws.base.SocketHandler
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
