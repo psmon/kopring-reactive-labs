@@ -1,19 +1,19 @@
 ## Ndev Build
 
 ``` shell
-docker build -f Dockerfile -t devtool-registry.lunacode.dev/neo-kotlin-labs:dev .
+docker build -f Dockerfile -t registry.webnori.com/neo-kotlin-labs:dev .
 ```
 
 ## Ndev Run
 
 ``` shell
-docker run -p 8080:8080 --name neo-kotlin-labs devtool-registry.lunacode.dev/neo-kotlin-labs:dev
+docker run -p 8080:8080 --name neo-kotlin-labs registry.webnori.com/neo-kotlin-labs:dev
 ```
 
 ## Ndev Push
 
 ``` shell
-docker push devtool-registry.lunacode.dev/neo-kotlin-labs:dev
+docker push registry.webnori.com/neo-kotlin-labs:dev
 ```
 
 
