@@ -52,7 +52,7 @@
             return;
         }
 
-        eventSource = new EventSource(`api/sse?brandId=${brandId}&userId=${userId}`);
+        eventSource = new EventSource(`/api/sse?brandId=${brandId}&userId=${userId}`);
 
         eventSource.onmessage = function(event) {
             const eventsDiv = document.getElementById("events");

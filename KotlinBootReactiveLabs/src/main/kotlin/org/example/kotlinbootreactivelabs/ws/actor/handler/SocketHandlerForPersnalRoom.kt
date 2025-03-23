@@ -46,11 +46,11 @@ data class PersnalWsMessage(val type: String, val channel: String?, val topic: S
 
 @Component
 class SocketHandlerForPersnalRoom(
+    private val actorSystem: ActorSystem<MainStageActorCommand>,
+    private val supervisorChannelActor: ActorRef<SupervisorChannelCommand>,
     private val sessionManagerActor: ActorRef<UserSessionCommand>,
     private val authService: SimpleAuthService,
     private val sendService: SendService,
-    private val actorSystem: ActorSystem<MainStageActorCommand>,
-    private val supervisorChannelActor: ActorRef<SupervisorChannelCommand>
 ) : WebSocketHandler {
 
     private val objectMapper = jacksonObjectMapper()
@@ -118,7 +118,7 @@ class SocketHandlerForPersnalRoom(
                         actorSystem.scheduler()
                     )
 
-                    Mono.fromCompletionStage(response).flatMap { res ->
+                    response.whenComplete { res, ex ->
                         if (res is FoundPersonalRoomActor) {
                             persnalRoomActor = res.actorRef
                             sendService.sendEventTextMessage(session, EventTextMessage(
@@ -128,6 +128,7 @@ class SocketHandlerForPersnalRoom(
                                 id = null,
                                 jsondata = null,
                             ))
+
                         } else {
                             sendService.sendEventTextMessage(session, EventTextMessage(
                                 type = MessageType.ERROR,
@@ -137,7 +138,6 @@ class SocketHandlerForPersnalRoom(
                                 jsondata = null,
                             ))
                         }
-                        Mono.empty<Void>()
                     }
                 } else {
                     sendService.sendEventTextMessage(session, EventTextMessage(
@@ -170,7 +170,7 @@ class SocketHandlerForPersnalRoom(
 
     private fun handleCounselingRequest(session: WebSocketSession, channel: String?): Any {
         val token = session.attributes["token"] as String?
-        return if (token == null || !isValidToken(token)) {
+        if (token == null || !isValidToken(token)) {
             sendService.sendEventTextMessage(session, EventTextMessage(
                 type = MessageType.ERROR,
                 message = "Invalid or missing token",
@@ -178,16 +178,25 @@ class SocketHandlerForPersnalRoom(
                 id = null,
                 jsondata = null,
             ))
-        } else if (channel != null) {
+            return Mono.empty<Void>()
+        }
+
+        if (channel != null) {
             val roomName = "${channel}_${UUID.randomUUID()}"
-            val response: CompletionStage<SupervisorChannelResponse> = AskPattern.ask(
+            sendService.sendEventTextMessage(session, EventTextMessage(
+                type = MessageType.INFO,
+                message = "Try Counselor : ${channel}",
+                from = MessageFrom.SYSTEM,
+                id = null,
+                jsondata = null,
+            ))
+
+            AskPattern.ask(
                 supervisorChannelActor,
                 { replyTo: ActorRef<SupervisorChannelResponse> -> GetCounselorManager(channel, replyTo) },
                 Duration.ofSeconds(3),
                 actorSystem.scheduler()
-            )
-
-            Mono.fromCompletionStage(response).flatMap { res ->
+            ).thenAccept { res ->
                 if (res is CounselorManagerFound) {
                     counselorManager = res.actorRef
                     sendService.sendEventTextMessage(session, EventTextMessage(
@@ -198,16 +207,14 @@ class SocketHandlerForPersnalRoom(
                         jsondata = null,
                     ))
 
-                    val response2: CompletionStage<CounselorManagerResponse> = AskPattern.ask(
+                    AskPattern.ask(
                         counselorManager,
-                        { replyTo: ActorRef<CounselorManagerResponse> -> RequestCounseling(roomName, generateRandomSkillInfo(), persnalRoomActor, replyTo) },
+                        { replyTo: ActorRef<CounselorManagerResponse> -> RequestCounseling(roomName,
+                            generateRandomSkillInfo(), persnalRoomActor, replyTo) },
                         Duration.ofSeconds(3),
                         actorSystem.scheduler()
-                    )
-
-                    Mono.fromCompletionStage(response2).flatMap { res2 ->
+                    ).thenAccept() { res2 ->
                         if (res2 is CounselorRoomFound) {
-                            counselorRoomActor = res2.actorRef
                             sendService.sendEventTextMessage(session, EventTextMessage(
                                 type = MessageType.INFO,
                                 message = "Counseling room created: $roomName",
@@ -215,6 +222,7 @@ class SocketHandlerForPersnalRoom(
                                 id = null,
                                 jsondata = null,
                             ))
+                            counselorRoomActor = res2.actorRef
                         } else {
                             sendService.sendEventTextMessage(session, EventTextMessage(
                                 type = MessageType.ERROR,
@@ -224,28 +232,34 @@ class SocketHandlerForPersnalRoom(
                                 jsondata = null,
                             ))
                         }
-                        Mono.empty<Void>()
                     }
+
                 } else {
-                    sendService.sendEventTextMessage(session, EventTextMessage(
-                        type = MessageType.ERROR,
-                        message = "Counselor manager not found for channel: $channel",
-                        from = MessageFrom.SYSTEM,
-                        id = null,
-                        jsondata = null,
-                    ))
+                    sendService.sendEventTextMessage(
+                        session, EventTextMessage(
+                            type = MessageType.ERROR,
+                            message = "Counselor manager not found for channel: $channel",
+                            from = MessageFrom.SYSTEM,
+                            id = null,
+                            jsondata = null,
+                        )
+                    )
                 }
-                Mono.empty<Void>()
             }
-        } else {
-            sendService.sendEventTextMessage(session, EventTextMessage(
-                type = MessageType.ERROR,
-                message = "Counseling request failed: Missing channel",
-                from = MessageFrom.SYSTEM,
-                id = null,
-                jsondata = null,
-            ))
+
+        }else {
+            sendService.sendEventTextMessage(
+                session, EventTextMessage(
+                    type = MessageType.ERROR,
+                    message = "Counseling request failed: Missing channel",
+                    from = MessageFrom.SYSTEM,
+                    id = null,
+                    jsondata = null,
+                )
+            )
         }
+
+        return Mono.empty<Void>()
     }
 
     private fun handleSendChat(session: WebSocketSession, chatMessage: String?): Any {

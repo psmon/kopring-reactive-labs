@@ -130,7 +130,7 @@ class HelloStateActor private constructor(
     }
 
     private fun onResetHelloCount(command: ResetHelloCount): Behavior<HelloStateActorCommand> {
-        context.log.info("Resetting hello count")
+        //context.log.info("Resetting hello count")
         helloCount = 0
         return this
     }

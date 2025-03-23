@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Client</title>
+    <link rel="stylesheet" href="wstest-actor.css">
+</head>
+<body>
+<div class="container">
+    <div class="button-area">
+        <h1>WebSocket Test For CounSelor</h1>
+        <button onclick="connectWebSocket()">Connect to WebSocket</button>
+        <button onclick="disconnectWebSocket()">Disconnect WebSocket</button>
+        <input type="text" id="token" placeholder="Access Token">
+        <button onclick="login()">Login</button>
+        <button onclick="sendMessage()">Send Hello</button>
+        <input type="text" id="roomName" placeholder="Room Name">
+        <input type="text" id="chatMessage" placeholder="Message">
+        <button onclick="sendToRoom()">Send to Room</button>
+        <button onclick="clearEvents()">Clear Events</button>
+    </div>
+    <div class="event-list-area">
+        <ul id="eventList"></ul>
+    </div>
+</div>
+<script src="WebSocketClientCounselor.js"></script>
+</body>
+</html>

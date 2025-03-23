@@ -1,6 +1,8 @@
 package org.example.kotlinbootreactivelabs.ws
 
 import org.example.kotlinbootreactivelabs.ws.actor.basic.SocketActorHandler
+import org.example.kotlinbootreactivelabs.ws.actor.handler.SocketHandleForCounselor
+import org.example.kotlinbootreactivelabs.ws.actor.handler.SocketHandlerForPersnalRoom
 import org.example.kotlinbootreactivelabs.ws.base.SocketHandler
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -16,7 +18,10 @@ import org.springframework.web.reactive.socket.server.support.HandshakeWebSocket
 @EnableWebFlux
 class ReactiveWebSocketConfig(
     private val socketHandler: SocketHandler,
-    private val socketActorHandler: SocketActorHandler
+    private val socketActorHandler: SocketActorHandler,
+    private val socketHandleForCounselor: SocketHandleForCounselor,
+    private val socketHandlerForPersnalRoom: SocketHandlerForPersnalRoom
+
 ) {
 
     @Bean
@@ -33,7 +38,9 @@ class ReactiveWebSocketConfig(
     fun webSocketHandlerMapping(): HandlerMapping {
         val map = mapOf(
             "/ws-reactive" to socketHandler,
-            "/ws-actor" to socketActorHandler
+            "/ws-actor" to socketActorHandler,
+            "/ws-counselor" to socketHandleForCounselor,
+            "/ws-user" to socketHandlerForPersnalRoom
         )
         val handlerMapping = SimpleUrlHandlerMapping()
         handlerMapping.order = 1

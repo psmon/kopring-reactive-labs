@@ -35,10 +35,10 @@ data class CounselorWsMessage(
 
 @Component
 class SocketHandleForCounselor(
+    private val actorSystem: ActorSystem<MainStageActorCommand>,
     private val supervisorChannelActor: ActorRef<SupervisorChannelCommand>,
     private val authService: SimpleAuthService,
     private val sendService: SendService,
-    private val actorSystem: ActorSystem<MainStageActorCommand>
 ) : WebSocketHandler {
 
     private val objectMapper = jacksonObjectMapper()

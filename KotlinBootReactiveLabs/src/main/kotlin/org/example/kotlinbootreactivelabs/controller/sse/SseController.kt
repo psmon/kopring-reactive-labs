@@ -1,6 +1,7 @@
 package org.example.kotlinbootreactivelabs.controller.sse
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.reactor.mono
 import org.apache.pekko.actor.typed.ActorRef
@@ -19,6 +20,7 @@ import reactor.core.publisher.Flux
 import java.time.Duration
 
 @RestController
+@Tag(name = "SseController")
 class SseController(private val akka: AkkaConfiguration) {
 
     private val logger = LoggerFactory.getLogger(SseController::class.java)

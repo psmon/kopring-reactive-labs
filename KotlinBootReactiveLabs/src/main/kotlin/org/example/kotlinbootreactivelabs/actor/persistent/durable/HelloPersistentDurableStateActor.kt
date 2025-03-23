@@ -124,7 +124,7 @@ class HelloPersistentDurableStateActor private constructor(
     }
 
     private fun onResetHelloCount(state: HelloState): Effect<HelloState> {
-        context.log.info("Resetting hello count")
+        //context.log.info("Resetting hello count")
         val newState = state.copy(helloCount = 0)
         return Effect().persist(newState)
     }
