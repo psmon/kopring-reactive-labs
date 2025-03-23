@@ -1,15 +1,15 @@
-package org.example.kotlinbootreactivelabs.controller
+package org.example.kotlinbootreactivelabs.controller.auth
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.example.kotlinbootreactivelabs.error.LoginFailedException
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
-
-import org.example.kotlinbootreactivelabs.service.SimpleAuthService
 import org.example.kotlinbootreactivelabs.service.AuthResponse
+import org.example.kotlinbootreactivelabs.service.SimpleAuthService
 import org.example.kotlinbootreactivelabs.service.TokenClaims
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ServerWebExchange
 import reactor.core.publisher.Mono
 

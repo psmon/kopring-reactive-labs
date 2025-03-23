@@ -1,17 +1,12 @@
-package org.example.kotlinbootreactivelabs.controller
+package org.example.kotlinbootreactivelabs.controller.actor.cluster
 
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.apache.pekko.actor.typed.ActorRef
-import org.apache.pekko.actor.typed.SupervisorStrategy
 import org.apache.pekko.actor.typed.javadsl.AskPattern
-import org.apache.pekko.actor.typed.javadsl.Behaviors
-import org.apache.pekko.cluster.sharding.typed.ShardingEnvelope
 import org.apache.pekko.cluster.sharding.typed.javadsl.ClusterSharding
 import org.apache.pekko.cluster.sharding.typed.javadsl.Entity
 import org.apache.pekko.cluster.sharding.typed.javadsl.EntityRef
 import org.apache.pekko.cluster.sharding.typed.javadsl.EntityTypeKey
-import org.apache.pekko.cluster.typed.ClusterSingleton
-import org.apache.pekko.cluster.typed.SingletonActor
 import org.example.kotlinbootreactivelabs.actor.cluster.CounterActor
 import org.example.kotlinbootreactivelabs.actor.cluster.CounterCommand
 import org.example.kotlinbootreactivelabs.actor.cluster.CounterState
@@ -28,7 +23,7 @@ import reactor.core.publisher.Mono
 import java.time.Duration
 
 @RestController
-@RequestMapping("/api/cluster")
+@RequestMapping("/api/actor/cluster")
 @Tag(name = "Cluster Controller")
 class ClusterController(private val akka: AkkaConfiguration) {
 
@@ -70,8 +65,9 @@ class ClusterController(private val akka: AkkaConfiguration) {
 
             var shardSystem = ClusterSharding.get(akkaSystem)
 
-            var shardCountActorEx = shardSystem.init(Entity.of(typeKey,
-                { entityContext -> CounterActor.create(entityContext.entityId) }
+            var shardCountActorEx = shardSystem.init(
+                Entity.of(typeKey,
+                { entityContext -> CounterActor.Companion.create(entityContext.entityId) }
             ))
 
             "Shard Count Actor Created"
@@ -86,7 +82,7 @@ class ClusterController(private val akka: AkkaConfiguration) {
 
             var shardSystem = ClusterSharding.get(akkaSystem)
 
-            var shardCountActor:EntityRef<CounterCommand> = shardSystem.entityRefFor(typeKey, entityId)
+            var shardCountActor: EntityRef<CounterCommand> = shardSystem.entityRefFor(typeKey, entityId)
 
             shardCountActor.tell(Increment(count))
 
@@ -101,7 +97,7 @@ class ClusterController(private val akka: AkkaConfiguration) {
 
             var shardSystem = ClusterSharding.get(akkaSystem)
 
-            var shardCountActor:EntityRef<CounterCommand> = shardSystem.entityRefFor(typeKey, entityId)
+            var shardCountActor: EntityRef<CounterCommand> = shardSystem.entityRefFor(typeKey, entityId)
 
             val response = AskPattern.ask(
                 shardCountActor,

@@ -7,7 +7,6 @@ import reactor.core.publisher.Mono
 import org.springframework.web.reactive.socket.WebSocketSession as ReactiveWebSocketSession
 
 
-
 @Component
 class SendService {
 

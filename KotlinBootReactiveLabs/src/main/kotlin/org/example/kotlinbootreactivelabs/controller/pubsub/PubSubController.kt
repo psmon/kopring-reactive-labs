@@ -1,5 +1,4 @@
-package org.example.kotlinbootreactivelabs.controller
-
+package org.example.kotlinbootreactivelabs.controller.pubsub
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -8,11 +7,14 @@ import org.example.kotlinbootreactivelabs.actor.MainStageActorCommand
 import org.example.kotlinbootreactivelabs.actor.PublishToTopic
 import org.example.kotlinbootreactivelabs.config.AkkaConfiguration
 import org.example.kotlinbootreactivelabs.ws.actor.basic.SimpleSessionCommand
-import org.example.kotlinbootreactivelabs.ws.actor.basic.SimpleSessionCommand.SimpleSendMessageToSession
-import org.example.kotlinbootreactivelabs.ws.actor.basic.SimpleSessionManagerActor
 import org.example.kotlinbootreactivelabs.ws.actor.basic.SimpleUserSessionCommandResponse
 import org.example.kotlinbootreactivelabs.ws.base.SessionManager
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
 
 @RestController
@@ -33,7 +35,7 @@ class PubSubController(
             sessionManager.sendReactiveMessageToSession(sessionId, message)
 
             val noSender = akka.getMainStage().ignoreRef<SimpleUserSessionCommandResponse>()
-            simpleSessionActor.tell(SimpleSendMessageToSession(sessionId, message, noSender ))
+            simpleSessionActor.tell(SimpleSessionCommand.SimpleSendMessageToSession(sessionId, message, noSender))
             "Message sent to session $sessionId"
         }
     }

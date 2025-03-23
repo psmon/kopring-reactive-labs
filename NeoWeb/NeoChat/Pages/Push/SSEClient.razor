@@ -52,7 +52,7 @@
             return;
         }
 
-        var url = $"http://localhost:8080/sse?brandId={brandId}&userId={userId}";
+        var url = $"http://localhost:8080/api/sse?brandId={brandId}&userId={userId}";
         await JS.InvokeVoidAsync("startSSE", url, DotNetObjectReference.Create(this));
     }
 

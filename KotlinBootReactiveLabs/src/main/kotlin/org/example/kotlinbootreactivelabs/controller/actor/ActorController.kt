@@ -1,4 +1,4 @@
-package org.example.kotlinbootreactivelabs.controller
+package org.example.kotlinbootreactivelabs.controller.actor
 
 import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.future.await

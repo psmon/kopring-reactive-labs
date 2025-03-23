@@ -1,8 +1,4 @@
-package org.example.kotlinbootreactivelabs.controller
-
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+package org.example.kotlinbootreactivelabs.controller.dummy
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
@@ -22,23 +18,28 @@ import labs.common.model.chat.CustomFieldRequest
 import labs.common.model.chat.CustomFieldResponse
 import labs.common.model.chat.FetchChatsResponse
 import labs.common.model.chat.FetchConversationsResponse
-import labs.common.model.chat.FetchTagsResponse
 import labs.common.model.chat.FetchKakaoAppTemplatesResponse
+import labs.common.model.chat.FetchTagsResponse
+import labs.common.model.chat.GetKakaoAppTemplateResponse
 import labs.common.model.chat.GetMessageResponse
 import labs.common.model.chat.GetSocialChannelsResponse
-import labs.common.model.chat.GetKakaoAppTemplateResponse
+import labs.common.model.chat.KakaoAppTemplate
+import labs.common.model.chat.KakaoTemplateInfo
 import labs.common.model.chat.MessageData
 import labs.common.model.chat.MessageInfo
 import labs.common.model.chat.MessageParams
 import labs.common.model.chat.SocialChannel
 import labs.common.model.chat.Template
 import labs.common.model.chat.UserData
-import labs.common.model.chat.KakaoAppTemplate
-import labs.common.model.chat.KakaoTemplateInfo
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/api/chat")
+@RequestMapping("/dummy/api/chat")
 @Tag(name = "Chat Controller")
 class ChatController {
 
