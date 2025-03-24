@@ -36,6 +36,7 @@ data class SetCounselorSocketSession(val socketSession: WebSocketSession) : Coun
 data class SendToCounselorHandlerTextMessage(val message: String) : CounselorCommand()
 data class SendToRoomForPersonalTextMessage(val roomName: String, val message: String) : CounselorCommand()
 data class SetCounselorTestProbe(val testProbe: ActorRef<CounselorResponse>) : CounselorCommand()
+data class SendToCounselorSystemMessage(val message: String) : CounselorCommand()
 
 sealed class CounselorResponse
 data class TaskAssigned(val task: String) : CounselorResponse()
@@ -75,6 +76,7 @@ class CounselorActor private constructor(
             .onMessage(SetCounselorSocketSession::class.java, this::onSetCounselorSocketSession)
             .onMessage(SendToCounselorHandlerTextMessage::class.java, this::onSendToCounselorTextMessage)
             .onMessage(SendToRoomForPersonalTextMessage::class.java, this::onSendToRoomForPersonalTextMessage)
+            .onMessage(SendToCounselorSystemMessage::class.java, this::onSendToCounselorSystemMessage)
             .onMessage(SetCounselorTestProbe::class.java, this::onSetCounselorTestProbe)
             .build()
     }
@@ -100,6 +102,22 @@ class CounselorActor private constructor(
                 socketSession!!, EventTextMessage(
                     type = MessageType.CHAT,
                     message = "$command.message",
+                    from = MessageFrom.SYSTEM,
+                    id = null,
+                    jsondata = null,
+                ))
+        }
+        else{
+            context.log.error("Counselor socketSession  is not initialized - ${context.self.path()}")
+        }
+        return this
+    }
+    private fun onSendToCounselorSystemMessage(command: SendToCounselorSystemMessage): Behavior<CounselorCommand> {
+        if(socketSession != null){
+            sendService.sendEventTextMessage(
+                socketSession!!, EventTextMessage(
+                    type = MessageType.INFO,
+                    message = command.message,
                     from = MessageFrom.SYSTEM,
                     id = null,
                     jsondata = null,

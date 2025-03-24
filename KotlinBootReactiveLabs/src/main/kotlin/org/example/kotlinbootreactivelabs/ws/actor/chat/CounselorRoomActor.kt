@@ -51,9 +51,9 @@ class CounselorRoomActor private constructor(
             .build()
     }
 
-    private fun onSendToCounselor(sendToCounselor: SendToCounselor?): Behavior<CounselorRoomCommand>? {
+    private fun onSendToCounselor(sendToCounselor: SendToCounselor): Behavior<CounselorRoomCommand>? {
         if(::counselor.isInitialized){
-            counselor.tell(SendToCounselorHandlerTextMessage(sendToCounselor!!.message))
+            counselor.tell(SendToCounselorHandlerTextMessage(sendToCounselor.message))
         }
         else{
             context.log.error("CounselorActor is not initialized")
@@ -75,6 +75,7 @@ class CounselorRoomActor private constructor(
 
     private fun onAssignCounselor(command: AssignCounselor): Behavior<CounselorRoomCommand> {
         counselor = command.counselorActor
+        counselor.tell(SendToCounselorSystemMessage("You are assigned to the room: $name"))
         return this
     }
 
