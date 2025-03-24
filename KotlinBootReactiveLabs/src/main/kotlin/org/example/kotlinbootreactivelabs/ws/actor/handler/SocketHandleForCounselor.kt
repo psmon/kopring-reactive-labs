@@ -11,13 +11,7 @@ import org.apache.pekko.actor.typed.javadsl.AskPattern
 import org.example.kotlinbootreactivelabs.actor.MainStageActorCommand
 import org.example.kotlinbootreactivelabs.service.SendService
 import org.example.kotlinbootreactivelabs.service.SimpleAuthService
-import org.example.kotlinbootreactivelabs.ws.actor.chat.CounselorActorFound
-import org.example.kotlinbootreactivelabs.ws.actor.chat.CounselorCommand
-import org.example.kotlinbootreactivelabs.ws.actor.chat.GetCounselorFromManager
-import org.example.kotlinbootreactivelabs.ws.actor.chat.SendToRoomForPersonalTextMessage
-import org.example.kotlinbootreactivelabs.ws.actor.chat.SetCounselorSocketSession
-import org.example.kotlinbootreactivelabs.ws.actor.chat.SupervisorChannelCommand
-import org.example.kotlinbootreactivelabs.ws.actor.chat.SupervisorChannelResponse
+import org.example.kotlinbootreactivelabs.ws.actor.chat.*
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.socket.WebSocketHandler
 import org.springframework.web.reactive.socket.WebSocketSession
@@ -42,57 +36,32 @@ class SocketHandleForCounselor(
 ) : WebSocketHandler {
 
     private val objectMapper = jacksonObjectMapper()
-
     private lateinit var counselorActor: ActorRef<CounselorCommand>
 
     override fun handle(session: WebSocketSession): Mono<Void> {
-
         return session.receive()
             .map { it.payloadAsText }
             .flatMap { payload ->
                 val webSocketMessage: CounselorWsMessage = objectMapper.readValue(payload)
-
                 when (webSocketMessage.type) {
-                    "login" -> {
-                        handleLogin(session, webSocketMessage.data)
-                    }
-                    else -> {
-                        handleAuthMessages(session, webSocketMessage)
-                    }
+                    "login" -> handleLogin(session, webSocketMessage.data)
+                    else -> handleAuthMessages(session, webSocketMessage)
                 }
                 Mono.empty<Void>()
             }
             .then()
-            .doFinally {
-            }
     }
 
     private fun handleLogin(session: WebSocketSession, token: String?) {
         if (token == null) {
-            sendService.sendEventTextMessage(
-                session, EventTextMessage(
-                    type = MessageType.ERROR,
-                    message = "Login failed: Missing id or password",
-                    from = MessageFrom.SYSTEM,
-                    id = null,
-                    jsondata = null,
-                )
-            )
+            sendErrorMessage(session, "Login failed: Missing id or password")
             return
         }
 
         try {
             val authResponse = authService.getClaimsFromToken(token)
             if (authResponse.authType != "counselor") {
-                sendService.sendEventTextMessage(
-                    session, EventTextMessage(
-                        type = MessageType.ERROR,
-                        message = "Login failed: Invalid user type",
-                        from = MessageFrom.SYSTEM,
-                        id = null,
-                        jsondata = null,
-                    )
-                )
+                sendErrorMessage(session, "Login failed: Invalid user type")
                 return
             }
 
@@ -104,15 +73,13 @@ class SocketHandleForCounselor(
                 put("identifier", authResponse.identifier)
             }
 
-            sendService.sendEventTextMessage(
-                session, EventTextMessage(
-                    type = MessageType.INFO,
-                    message = "Login successful from Counselor",
-                    from = MessageFrom.SYSTEM,
-                    id = null,
-                    jsondata = null,
-                )
-            )
+            sendService.sendEventTextMessage(session, EventTextMessage(
+                type = MessageType.INFO,
+                message = "Login successful from Counselor",
+                from = MessageFrom.SYSTEM,
+                id = null,
+                jsondata = null,
+            ))
 
             val response: CompletionStage<SupervisorChannelResponse> = AskPattern.ask(
                 supervisorChannelActor,
@@ -127,53 +94,26 @@ class SocketHandleForCounselor(
                 if (res is CounselorActorFound) {
                     counselorActor = res.actorRef
                     counselorActor.tell(SetCounselorSocketSession(session))
-                    sendService.sendEventTextMessage(
-                        session, EventTextMessage(
-                            type = MessageType.INFO,
-                            message = "CounselorActor reference obtained.",
-                            from = MessageFrom.SYSTEM,
-                            id = null,
-                            jsondata = null,
-                        )
-                    )
+                    sendService.sendEventTextMessage(session, EventTextMessage(
+                        type = MessageType.INFO,
+                        message = "CounselorActor reference obtained.",
+                        from = MessageFrom.SYSTEM,
+                        id = null,
+                        jsondata = null,
+                    ))
                 } else {
-                    sendService.sendEventTextMessage(
-                        session, EventTextMessage(
-                            type = MessageType.ERROR,
-                            message = "Failed to obtain CounselorActor reference.",
-                            from = MessageFrom.SYSTEM,
-                            id = null,
-                            jsondata = null,
-                        )
-                    )
+                    sendErrorMessage(session, "Failed to obtain CounselorActor reference.")
                 }
             }
         } catch (e: Exception) {
-            sendService.sendEventTextMessage(
-                session, EventTextMessage(
-                    type = MessageType.ERROR,
-                    message = "Login failed: Invalid user type",
-                    from = MessageFrom.SYSTEM,
-                    id = null,
-                    jsondata = null,
-                )
-            )
-            return
+            sendErrorMessage(session, "Login failed: ${e.message}")
         }
     }
 
     private fun handleAuthMessages(session: WebSocketSession, webSocketMessage: CounselorWsMessage) {
         val token = session.attributes["token"] as String?
         if (token == null || !isValidToken(token)) {
-            sendService.sendEventTextMessage(
-                session, EventTextMessage(
-                    type = MessageType.ERROR,
-                    message = "Invalid or missing token",
-                    from = MessageFrom.SYSTEM,
-                    id = null,
-                    jsondata = null,
-                )
-            )
+            sendErrorMessage(session, "Invalid or missing token")
             return
         }
 
@@ -182,34 +122,18 @@ class SocketHandleForCounselor(
             "subscribe" -> webSocketMessage.channel?.let { /* Handle subscribe */ }
             "unsubscribe" -> webSocketMessage.channel?.let { /* Handle unsubscribe */ }
             "message" -> session.attributes["identifier"]?.let { /* Handle message */ }
-            "sendToRoom" -> {
-                val roomName = webSocketMessage.roomName
-                val message = webSocketMessage.data
-                if (roomName != null && message != null) {
-                    counselorActor.tell(SendToRoomForPersonalTextMessage(roomName, message))
-                } else {
-                    sendService.sendEventTextMessage(
-                        session, EventTextMessage(
-                            type = MessageType.ERROR,
-                            message = "Missing roomName or message",
-                            from = MessageFrom.SYSTEM,
-                            id = null,
-                            jsondata = null,
-                        )
-                    )
-                }
-            }
-            else -> {
-                sendService.sendEventTextMessage(
-                    session, EventTextMessage(
-                        type = MessageType.ERROR,
-                        message = "Unknown message type: ${webSocketMessage.type}",
-                        from = MessageFrom.SYSTEM,
-                        id = null,
-                        jsondata = null,
-                    )
-                )
-            }
+            "sendToRoom" -> handleSendToRoom(session, webSocketMessage)
+            else -> sendErrorMessage(session, "Unknown message type: ${webSocketMessage.type}")
+        }
+    }
+
+    private fun handleSendToRoom(session: WebSocketSession, webSocketMessage: CounselorWsMessage) {
+        val roomName = webSocketMessage.roomName
+        val message = webSocketMessage.data
+        if (roomName != null && message != null) {
+            counselorActor.tell(SendToRoomForPersonalTextMessage(roomName, message))
+        } else {
+            sendErrorMessage(session, "Missing roomName or message")
         }
     }
 
@@ -220,5 +144,15 @@ class SocketHandleForCounselor(
         } catch (e: Exception) {
             false
         }
+    }
+
+    private fun sendErrorMessage(session: WebSocketSession, message: String) {
+        sendService.sendEventTextMessage(session, EventTextMessage(
+            type = MessageType.ERROR,
+            message = message,
+            from = MessageFrom.SYSTEM,
+            id = null,
+            jsondata = null,
+        ))
     }
 }
