@@ -42,9 +42,16 @@ source ./.loadenv.sh
 curl -X POST "http://$WSLHOST:8080/api/auth/login?id=counselor1&password=counselor1&identifier=webnori&nick=counselor1&authType=counselor"    
 ```
 
-### 사용자가 로그인합니다.
+### user1 사용자가 로그인합니다.
 
 ```bash
 source ./.loadenv.sh
 curl -X POST "http://$WSLHOST:8080/api/auth/login?id=user1&password=user1&identifier=user1&nick=sam&authType=user"
+```
+
+### user2 사용자가 로그인합니다.
+
+```bash
+source ./.loadenv.sh
+curl -X POST "http://$WSLHOST:8080/api/auth/login?id=user2&password=user2&identifier=user2&nick=sam2&authType=user"
 ```
