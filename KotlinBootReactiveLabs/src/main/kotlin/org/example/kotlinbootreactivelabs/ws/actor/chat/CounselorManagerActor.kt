@@ -25,6 +25,9 @@ data class GetCounselor(val name: String, val replyTo: ActorRef<CounselorManager
 data class GetCounselorRoom(val roomName: String, val replyTo: ActorRef<CounselorManagerResponse>) : CounselorManagerCommand()
 data class UpdateRoutingRule(val newRoutingRule: CounselingRouter, val replyTo: ActorRef<CounselorManagerResponse>) : CounselorManagerCommand()
 data class EvaluateRoutingRule(val replyTo: ActorRef<CounselorManagerResponse>) : CounselorManagerCommand()
+// Observer
+data class AddObserverCounselor(val roomName: String, val observerName: String, val replyTo: ActorRef<CounselorManagerResponse>) : CounselorManagerCommand()
+
 
 sealed class CounselorManagerResponse
 data class CounselorCreated(val name: String) : CounselorManagerResponse()
@@ -81,6 +84,7 @@ class CounselorManagerActor private constructor(
             .onMessage(GetCounselorRoom::class.java, this::onGetCounselorRoom)
             .onMessage(UpdateRoutingRule::class.java, this::onUpdateRoutingRule)
             .onMessage(EvaluateRoutingRule::class.java, this::onEvaluateRoutingRule)
+            .onMessage(AddObserverCounselor::class.java, this::onAddObserverCounselor)
             .build()
     }
 
@@ -234,4 +238,21 @@ class CounselorManagerActor private constructor(
         return this
     }
 
+    private fun onAddObserverCounselor(command: AddObserverCounselor): Behavior<CounselorManagerCommand> {
+        val counselorRoomActor = counselorRooms[command.roomName]
+        val observer = counselors[command.observerName]
+        return if (counselorRoomActor != null && observer != null) {
+            counselorRoomActor.tell(InviteObserver(observer))
+            command.replyTo.tell(CounselorManagerSystemResponse("Observer counselor ${command.observerName} added to room: ${command.roomName}"))
+            this
+        } else {
+            val errorMessage = when {
+                counselorRoomActor == null -> "Room ${command.roomName} not found."
+                observer == null -> "Observer counselor ${command.observerName} not found."
+                else -> "Unknown error."
+            }
+            command.replyTo.tell(ErrorResponse(errorMessage))
+            this
+        }
+    }
 }

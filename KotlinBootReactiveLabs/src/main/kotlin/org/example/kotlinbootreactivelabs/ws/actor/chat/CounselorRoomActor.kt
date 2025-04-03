@@ -17,6 +17,7 @@ sealed class CounselorRoomCommand
 data class InvitePersonalRoomActor(val personalRoomActor: ActorRef<PersonalRoomCommand>, val replyTo: ActorRef<CounselorRoomResponse>) : CounselorRoomCommand()
 data class ChangeStatus(val status: CounselorRoomStatus, val replyTo: ActorRef<CounselorRoomResponse>) : CounselorRoomCommand()
 data class AssignCounselor(val counselorActor: ActorRef<CounselorCommand>) : CounselorRoomCommand()
+data class InviteObserver(val observer: ActorRef<CounselorCommand>) : CounselorRoomCommand()
 data class SendMessageToPersonalRoom(val message: String) : CounselorRoomCommand()
 data class SendToCounselor(val message: String) : CounselorRoomCommand()
 
@@ -35,6 +36,8 @@ class CounselorRoomActor private constructor(
 
     private lateinit var counselor: ActorRef<CounselorCommand>
 
+    private val observerCounselors: MutableList<ActorRef<CounselorCommand>> = mutableListOf()
+
     companion object {
         fun create(name: String): Behavior<CounselorRoomCommand> {
             return Behaviors.setup { context -> CounselorRoomActor(context, name) }
@@ -46,6 +49,7 @@ class CounselorRoomActor private constructor(
             .onMessage(InvitePersonalRoomActor::class.java, this::onInvitePersonalRoomActor)
             .onMessage(ChangeStatus::class.java, this::onChangeStatus)
             .onMessage(AssignCounselor::class.java, this::onAssignCounselor)
+            .onMessage(InviteObserver::class.java, this::onInviteObserver)
             .onMessage(SendMessageToPersonalRoom::class.java, this::onSendMessageToPersonalRoom)
             .onMessage(SendToCounselor::class.java, this::onSendToCounselor)
             .build()
@@ -54,6 +58,7 @@ class CounselorRoomActor private constructor(
     private fun onSendToCounselor(sendToCounselor: SendToCounselor): Behavior<CounselorRoomCommand>? {
         if(::counselor.isInitialized){
             counselor.tell(SendToCounselorHandlerTextMessage(sendToCounselor.message))
+            observerCounselors.forEach { it.tell(SendToCounselorHandlerTextMessage(sendToCounselor.message)) }
         }
         else{
             context.log.error("CounselorActor is not initialized")
@@ -76,6 +81,12 @@ class CounselorRoomActor private constructor(
     private fun onAssignCounselor(command: AssignCounselor): Behavior<CounselorRoomCommand> {
         counselor = command.counselorActor
         counselor.tell(SendToCounselorSystemMessage("You are assigned to the room: $name"))
+        return this
+    }
+
+    private fun onInviteObserver(command: InviteObserver): Behavior<CounselorRoomCommand> {
+        observerCounselors.add(command.observer)
+        command.observer.tell(SendToCounselorSystemMessage("You are observing the room: $name"))
         return this
     }
 

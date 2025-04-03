@@ -60,6 +60,23 @@ class CounselorManagerActorTest {
     }
 
     @Test
+    fun testAddObserverCounselor() {
+        val probe = testKit.createTestProbe<CounselorManagerResponse>()
+        val counselorManager = testKit.spawn(CounselorManagerActor.create())
+
+        // Create a counselor and a room
+        counselorManager.tell(CreateCounselor("observer1", probe.ref))
+        probe.receiveMessage()
+        counselorManager.tell(CreateRoom("room1", probe.ref))
+        probe.receiveMessage()
+
+        // Add observer counselor to the room
+        counselorManager.tell(AddObserverCounselor("room1", "observer1", probe.ref))
+        val response = probe.receiveMessage()
+        assertEquals(CounselorManagerSystemResponse("Observer counselor observer1 added to room: room1"), response)
+    }
+
+    @Test
     fun testRoundRobinCounselorAssignment() {
         val probe = testKit.createTestProbe<CounselorManagerResponse>()
         val counselorManager = testKit.spawn(CounselorManagerActor.create())
