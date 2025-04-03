@@ -49,7 +49,14 @@ CQRS를 학습할수 있습니다.
    이벤트에 태그를 추가하여 특정 이벤트만 필터링하거나 그룹화할 수 있습니다.
    이를 통해 쓰기 모델과 별도의 읽기 모델을 설계하여 CQRS 구조를 구현합니다.
 
+   
 ## Docs
 - [Actor with Kotlin](https://wiki.webnori.com/display/AKKA/AKKA.Kotlin)
 - [Test SampleCode](KotlinBootReactiveLabs/src/test/kotlin/org/example/kotlinbootreactivelabs/actor/readme.md)
 - [AkkaDoc](https://doc.akka.io/libraries/akka-core/2.6/index.html)
+
+## Intellij IDEA에서 사용되는 유용한 플러그인들입니다.
+- SonarLint : 코드 품질을 높이기위한 정적 분석툴
+- Atom Material Icons : 프로젝트 패키지및 파일Type 직관적 아이콘으로 표시
+- Rainbow Brackets Lite : 코드 편집장에서 중첩 괄호를 구분하기 쉽게 색구분
+- Grep Console : 개발로그가 복잡할때 IDE내에서 편리하게 필터및 하이라이트
