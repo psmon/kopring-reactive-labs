@@ -7,10 +7,13 @@ import org.apache.pekko.actor.typed.ActorRef
 import org.apache.pekko.actor.typed.Behavior
 import org.apache.pekko.actor.typed.javadsl.AbstractBehavior
 import org.apache.pekko.actor.typed.javadsl.ActorContext
+import org.apache.pekko.actor.typed.javadsl.AskPattern
 import org.apache.pekko.actor.typed.javadsl.Behaviors
 import org.apache.pekko.actor.typed.javadsl.Receive
 import org.example.kotlinbootreactivelabs.service.SendService
 import org.springframework.web.reactive.socket.WebSocketSession
+import java.time.Duration
+import java.util.concurrent.CompletionStage
 
 enum class CounselorStatus {
     Connecting,
@@ -37,6 +40,8 @@ data class SendToCounselorHandlerTextMessage(val message: String) : CounselorCom
 data class SendToRoomForPersonalTextMessage(val roomName: String, val message: String) : CounselorCommand()
 data class SetCounselorTestProbe(val testProbe: ActorRef<CounselorResponse>) : CounselorCommand()
 data class SendToCounselorSystemMessage(val message: String) : CounselorCommand()
+data class SetCounselorManager(val counselorManager: ActorRef<CounselorManagerCommand>) : CounselorCommand()
+data class  AddObserver(val roomName: String) : CounselorCommand()
 
 sealed class CounselorResponse
 data class TaskAssigned(val task: String) : CounselorResponse()
@@ -59,6 +64,8 @@ class CounselorActor private constructor(
 
     private val personalRooms = mutableMapOf<String, ActorRef<PersonalRoomCommand>>()
 
+    private lateinit var  counselorManager : ActorRef<CounselorManagerCommand>
+
     private lateinit var testProbe: ActorRef<CounselorResponse>
 
     companion object {
@@ -73,7 +80,9 @@ class CounselorActor private constructor(
             .onMessage(GoOffline::class.java, this::onGoOffline)
             .onMessage(GoOnline::class.java, this::onGoOnline)
             .onMessage(AssignRoom::class.java, this::onAssignRoom)
+            .onMessage(AddObserver::class.java, this::onObserver)
             .onMessage(SetCounselorSocketSession::class.java, this::onSetCounselorSocketSession)
+            .onMessage(SetCounselorManager::class.java, this::onSetCounselorManager)
             .onMessage(SendToCounselorHandlerTextMessage::class.java, this::onSendToCounselorTextMessage)
             .onMessage(SendToRoomForPersonalTextMessage::class.java, this::onSendToRoomForPersonalTextMessage)
             .onMessage(SendToCounselorSystemMessage::class.java, this::onSendToCounselorSystemMessage)
@@ -83,6 +92,39 @@ class CounselorActor private constructor(
 
     private fun onSetCounselorTestProbe(setCounselorTestProbe: SetCounselorTestProbe): Behavior<CounselorCommand> {
         testProbe = setCounselorTestProbe.testProbe
+        return this
+    }
+
+    private fun onSetCounselorManager(setCounselorManager: SetCounselorManager): Behavior<CounselorCommand> {
+        counselorManager= setCounselorManager.counselorManager
+        return this
+    }
+
+    private fun onObserver(addObserver: AddObserver): Behavior<CounselorCommand> {
+        val response: CompletionStage<CounselorManagerResponse> = AskPattern.ask(
+            counselorManager,
+            { replyTo: ActorRef<CounselorManagerResponse> -> AddObserverCounselor(addObserver.roomName, this.name, replyTo )},
+            Duration.ofSeconds(3),
+            context.system.scheduler()
+        )
+
+        response.whenComplete { res, _ ->
+            if (res is CounselorManagerSystemResponse) {
+                context.log.info("Counselor ${this.name} added to room ${addObserver.roomName} as observer")
+                sendService.sendEventTextMessage(
+                    socketSession!!, EventTextMessage(
+                        type = MessageType.INFO,
+                        message = "Counselor ${this.name} added to room ${addObserver.roomName} as observer",
+                        from = MessageFrom.SYSTEM,
+                        id = addObserver.roomName,
+                        jsondata = null,
+                    ))
+
+            } else if (res is ErrorResponse) {
+                context.log.error("Error adding counselor ${this.name} to room ${addObserver.roomName}: ${res.message}")
+            }
+        }
+
         return this
     }
 

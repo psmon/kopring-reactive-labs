@@ -73,7 +73,11 @@ class WebSocketClient {
         this.addEvent("sendToRoom: " + jsonMessage);
     }
 
-
+    addObserver(roomName, message) {
+        const jsonMessage = JSON.stringify({ type: "addObserver", roomName: roomName, data: message });
+        this.socket.send(jsonMessage);
+        this.addEvent("addObserver: " + jsonMessage);
+    }
 }
 
 const client = new WebSocketClient("ws://localhost:8080/ws-counselor");
@@ -104,4 +108,10 @@ function sendToRoom() {
     const roomName = document.getElementById('roomName').value;
     const message = document.getElementById('chatMessage').value;
     client.sendToRoom(roomName, message);
+}
+
+function addObserver() {
+    const roomName = document.getElementById('roomName').value;
+    const message = document.getElementById('chatMessage').value;
+    client.addObserver(roomName, message);
 }

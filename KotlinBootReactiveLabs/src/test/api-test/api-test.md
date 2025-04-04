@@ -35,21 +35,29 @@ source ./.loadenv.sh
 curl -X POST "http://$WSLHOST:8080/api/admin/counselor/add-counselor?channel=webnori&id=counselor1"
 ```
 
-### Webnori 채널의 counselor1상담사가 로그인합니다.
+```bash
+source ./.loadenv.sh
+curl -X POST "http://$WSLHOST:8080/api/admin/counselor/add-counselor?channel=webnori&id=counselor2"
+```
+
+### Webnori 채널에 상담사가 로그인합니다.
 
 ```bash
 source ./.loadenv.sh
 curl -X POST "http://$WSLHOST:8080/api/auth/login?id=counselor1&password=counselor1&identifier=webnori&nick=counselor1&authType=counselor"    
 ```
+```bash
+source ./.loadenv.sh
+curl -X POST "http://$WSLHOST:8080/api/auth/login?id=counselor2&password=counselor2&identifier=webnori&nick=counselor2&authType=counselor"    
+```
 
-### user1 사용자가 로그인합니다.
+
+###  사용자가 로그인합니다.
 
 ```bash
 source ./.loadenv.sh
 curl -X POST "http://$WSLHOST:8080/api/auth/login?id=user1&password=user1&identifier=user1&nick=sam&authType=user"
 ```
-
-### user2 사용자가 로그인합니다.
 
 ```bash
 source ./.loadenv.sh

@@ -102,8 +102,11 @@ class CounselorManagerActor private constructor(
             (group.availableCounselors as MutableList).add(counselorActor)
             lastAssignedGroupIndex = (lastAssignedGroupIndex + 1) % routingRule.counselingGroups.size
 
-
             command.replyTo.tell(CounselorCreated(command.name))
+
+            // Send the counselor manager reference to the counselor actor
+            counselorActor.tell(SetCounselorManager(context.self.narrow()))
+
         }
         return this
     }

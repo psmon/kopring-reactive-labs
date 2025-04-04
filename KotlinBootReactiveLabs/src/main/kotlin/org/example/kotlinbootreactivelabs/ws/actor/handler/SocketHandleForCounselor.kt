@@ -11,6 +11,7 @@ import org.apache.pekko.actor.typed.javadsl.AskPattern
 import org.example.kotlinbootreactivelabs.actor.MainStageActorCommand
 import org.example.kotlinbootreactivelabs.service.SendService
 import org.example.kotlinbootreactivelabs.service.SimpleAuthService
+import org.example.kotlinbootreactivelabs.ws.actor.basic.SimpleUserSessionCommandResponse
 import org.example.kotlinbootreactivelabs.ws.actor.chat.*
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.socket.WebSocketHandler
@@ -123,6 +124,7 @@ class SocketHandleForCounselor(
             "unsubscribe" -> webSocketMessage.channel?.let { /* Handle unsubscribe */ }
             "message" -> session.attributes["identifier"]?.let { /* Handle message */ }
             "sendToRoom" -> handleSendToRoom(session, webSocketMessage)
+            "addObserver" -> handleAddObserver(session, webSocketMessage)
             else -> sendErrorMessage(session, "Unknown message type: ${webSocketMessage.type}")
         }
     }
@@ -133,7 +135,16 @@ class SocketHandleForCounselor(
         if (roomName != null && message != null) {
             counselorActor.tell(SendToRoomForPersonalTextMessage(roomName, message))
         } else {
-            sendErrorMessage(session, "Missing roomName or message")
+            sendErrorMessage(session, "handleSendToRoom::Missing roomName or message")
+        }
+    }
+
+    private fun handleAddObserver(session: WebSocketSession, webSocketMessage: CounselorWsMessage) {
+        val roomName = webSocketMessage.roomName
+        if (roomName != null) {
+            counselorActor.tell(AddObserver(roomName))
+        } else {
+            sendErrorMessage(session, "handleAddObserver::Missing roomName or counselorName")
         }
     }
 

@@ -12,18 +12,23 @@
         <h1>WebSocket Test For CounSelor</h1>
         <button onclick="connectWebSocket()">Connect to WebSocket</button>
         <button onclick="disconnectWebSocket()">Disconnect WebSocket</button>
+        <hr>
         <input type="text" id="token" placeholder="Access Token">
         <button onclick="login()">Login</button>
+        <hr>
         <button onclick="sendMessage()">Send Hello</button>
+        <hr>
         <input type="text" id="roomName" placeholder="Room Name">
         <input type="text" id="chatMessage" placeholder="Message">
         <button onclick="sendToRoom()">Send to Room</button>
+        <hr>
+        <button onclick="addObserver()">AddObserver</button>
         <button onclick="clearEvents()">Clear Events</button>
     </div>
     <div class="event-list-area">
         <ul id="eventList"></ul>
     </div>
 </div>
-<script src="WebSocketClientCounselor.js"></script>
+<script src="WebSocketClientCounselor.js?a=111"></script>
 </body>
 </html>
