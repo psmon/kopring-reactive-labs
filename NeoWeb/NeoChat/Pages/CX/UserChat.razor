@@ -1,0 +1,94 @@
+﻿@page "/chat-user"
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
+
+<h3>UserChat</h3>
+
+<div class="chat-container">
+    <div class="input-group">
+        <input type="text" id="token" placeholder="Token" class="input-field" />
+        <input type="text" id="channel" placeholder="Channel" class="input-field" />
+        <input type="text" id="chatMessage" placeholder="Message" class="input-field" />
+    </div>
+    <div class="button-group">
+        <button @onclick="ConnectWebSocket" class="btn">Connect</button>
+        <button @onclick="DisconnectWebSocket" class="btn">Disconnect</button>
+        <button @onclick="Login" class="btn">Login</button>
+        <button @onclick="RequestCounseling" class="btn">Request Counseling</button>
+        <button @onclick="SendChat" class="btn">Send Chat</button>
+        <button @onclick="SendMessage" class="btn">Send Message</button>
+        <button @onclick="SendAction" class="btn">Send Action</button>
+        <button @onclick="SubscribeTopic" class="btn">Subscribe to Topic</button>
+        <button @onclick="UnsubscribeTopic" class="btn">Unsubscribe from Topic</button>
+        <button @onclick="ClearEvents" class="btn">Clear Events</button>
+    </div>
+</div>
+
+<ul id="eventList" class="event-list"></ul>
+
+
+@code {
+    
+    private async Task LoadScript()
+    {
+        await JS.InvokeVoidAsync("dynamicJsLoader.loadScript", "js/cx/WebSocketClientUser.js");
+    }
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadScript();
+        }
+    }
+    
+    private async Task ConnectWebSocket()
+    {
+        await JS.InvokeVoidAsync("connectWebSocket");
+    }
+
+    private async Task DisconnectWebSocket()
+    {
+        await JS.InvokeVoidAsync("disconnectWebSocket");
+    }
+
+    private async Task Login()
+    {
+        await JS.InvokeVoidAsync("login");
+    }
+
+    private async Task RequestCounseling()
+    {
+        await JS.InvokeVoidAsync("requestCounseling");
+    }
+
+    private async Task SendChat()
+    {
+        await JS.InvokeVoidAsync("sendChat");
+    }
+
+    private async Task SendMessage()
+    {
+        await JS.InvokeVoidAsync("sendMessage");
+    }
+
+    private async Task SendAction()
+    {
+        await JS.InvokeVoidAsync("sendAction");
+    }
+
+    private async Task SubscribeTopic()
+    {
+        await JS.InvokeVoidAsync("subscribeTopic");
+    }
+
+    private async Task UnsubscribeTopic()
+    {
+        await JS.InvokeVoidAsync("unsubscribeTopic");
+    }
+
+    private async Task ClearEvents()
+    {
+        await JS.InvokeVoidAsync("clearEvents");
+    }
+}

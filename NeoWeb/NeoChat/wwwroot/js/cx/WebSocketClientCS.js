@@ -1,4 +1,4 @@
-class WebSocketClient {
+class WebSocketClientCS {
     constructor(url) {
         this.url = url;
         this.socket = null;
@@ -80,7 +80,7 @@ class WebSocketClient {
     }
 }
 
-const client = new WebSocketClient("ws://localhost:8080/ws-counselor");
+const client = new WebSocketClientCS("ws://localhost:8080/ws-counselor");
 
 function connectWebSocket() {
     client.connect();
