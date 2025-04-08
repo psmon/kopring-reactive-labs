@@ -66,112 +66,106 @@ class AkkaConfiguration {
     @Autowired lateinit var durableRepository: DurableRepository
 
     @PostConstruct
-    fun init(){
+    fun init() {
+        val finalConfig = loadConfiguration()
+        initializeMainStage(finalConfig)
+        initializeActors()
+        initializeHelloStateActors()
+        initializeClusterRoles()
+        initializeClusterSharding()
+        initializeClusterSingleton()
+    }
 
+    private fun loadConfiguration(): Config {
         val baseConfig = ConfigFactory.load("application.conf")
         val clusterConfigName = System.getProperty("Cluster") ?: ""
-        val finalConfig: Config = if (clusterConfigName.isNotEmpty()) {
+        return if (clusterConfigName.isNotEmpty()) {
             val clusterConfig = ConfigFactory.load("$clusterConfigName.conf")
             clusterConfig.withFallback(baseConfig)
         } else {
             val clusterConfig = ConfigFactory.load("standalone.conf")
             clusterConfig.withFallback(baseConfig)
+        }.also {
+            logger.info("Starting Akka Actor System with config: $clusterConfigName")
         }
+    }
 
-        logger.info("Starting Akka Actor System with config: $clusterConfigName")
+    private fun initializeMainStage(config: Config) {
+        mainStage = ActorSystem.create(MainStageActor.create(), "ClusterSystem", config)
+    }
 
-        mainStage = ActorSystem.create(MainStageActor.create(), "ClusterSystem", finalConfig)
+    private fun initializeActors() {
+        simpleSessionActor = createActor { CreateSimpleSocketSessionManager(it) } as CompletableFuture<ActorRef<SimpleSessionCommand>>
+        sessionManagerActor = createActor { CreateSocketSessionManager(it) } as CompletableFuture<ActorRef<UserSessionCommand>>
+        supervisorChannelActor = createActor { CreateSupervisorChannelActor(it) } as CompletableFuture<ActorRef<SupervisorChannelCommand>>
+    }
 
-        simpleSessionActor = AskPattern.ask(
+    private fun <T : MainStageActorResponse> createActor(
+        command: (ActorRef<T>) -> MainStageActorCommand
+    ): CompletableFuture<ActorRef<*>> {
+        return AskPattern.ask(
             mainStage,
-            { replyTo: ActorRef<MainStageActorResponse> -> CreateSimpleSocketSessionManager(replyTo) },
+            command,
             Duration.ofSeconds(3),
             mainStage.scheduler()
         ).toCompletableFuture().thenApply { res ->
-            if (res is SocketSimpleSessionManagerCreated) {
-                logger.info("SocketSimpleSessionManager created: ${res.actorRef.path()}")
-                res.actorRef
-            } else {
-                throw IllegalStateException("Failed to create SocketSimpleSessionManager")
+            when (res) {
+                is SocketSimpleSessionManagerCreated -> {
+                    logger.info("SocketSimpleSessionManager created: ${res.actorRef.path()}")
+                    res.actorRef
+                }
+                is SocketSessionManagerCreated -> {
+                    logger.info("SocketSessionManager created: ${res.actorRef.path()}")
+                    res.actorRef
+                }
+                is SupervisorChannelActorCreated -> {
+                    logger.info("SupervisorChannelActor created: ${res.actorRef.path()}")
+                    res.actorRef
+                }
+                else -> throw IllegalStateException("Failed to create actor")
             }
         }
+    }
 
-        sessionManagerActor = AskPattern.ask(
-            mainStage,
-            { replyTo: ActorRef<MainStageActorResponse> -> CreateSocketSessionManager(replyTo) },
-            Duration.ofSeconds(3),
-            mainStage.scheduler()
-        ).toCompletableFuture().thenApply { res ->
-            if (res is SocketSessionManagerCreated) {
-                logger.info("SocketSessionManager created: ${res.actorRef.path()}")
-                res.actorRef
-            } else {
-                throw IllegalStateException("Failed to create SocketSessionManager")
-            }
-        }
-
-
-        supervisorChannelActor = AskPattern.ask(
-            mainStage,
-            { replyTo: ActorRef<MainStageActorResponse> -> CreateSupervisorChannelActor(replyTo) },
-            Duration.ofSeconds(3),
-            mainStage.scheduler()
-        ).toCompletableFuture().thenApply { res ->
-            if (res is SupervisorChannelActorCreated) {
-                logger.info("SupervisorChannelActor created: ${res.actorRef.path()}")
-                res.actorRef
-            } else {
-                throw IllegalStateException("Failed to create SupervisorChannelActor")
-            }
-        }
-
-        // Local Actor
+    private fun initializeHelloStateActors() {
         helloState = ActorSystem.create(HelloStateActor.create(HelloState.HAPPY), "HelloStateActor")
-        helloStateStore = ActorSystem.create(HelloStateStoreActor.create("test-perstistid-00001",durableRepository), "helloStateStore")
+        helloStateStore = ActorSystem.create(
+            HelloStateStoreActor.create("test-perstistid-00001", durableRepository),
+            "helloStateStore"
+        )
+    }
 
-        if(clusterConfigName.isEmpty()){
-            logger.info("Cluster Config is Empty - Skip Cluster Init")
-            return
-        }
-
-        // Cluster Init
+    private fun initializeClusterRoles() {
         val selfMember = Cluster.get(mainStage).selfMember()
+        if (selfMember.hasRole("seed")) logger.info("My Application Role Seed")
+        if (selfMember.hasRole("helloA")) logger.info("My Application Role HelloA")
+        if (selfMember.hasRole("helloB")) logger.info("My Application Role HelloB")
+    }
 
-        if (selfMember.hasRole("seed")) {
-            logger.info("My Application Role Seed")
-        }
-
-        if (selfMember.hasRole("helloA")) {
-            logger.info("My Application Role HelloA")
-        }
-
-        if (selfMember.hasRole("helloB")) {
-            logger.info("My Application Role HelloB")
-        }
-
-        // ClusterSharding
+    private fun initializeClusterSharding() {
+        val selfMember = Cluster.get(mainStage).selfMember()
         if (selfMember.hasRole("shard")) {
             logger.info("My Application Role shard")
+            val shardSystem = ClusterSharding.get(mainStage)
             for (i in 1..100) {
                 val entityId = "test-$i"
-                var typeKey = EntityTypeKey.create(CounterCommand::class.java, entityId)
-                var shardSystem = ClusterSharding.get(mainStage)
-                shardSystem.init(Entity.of(typeKey, {
-                    entityContext -> CounterActor.create(entityContext.entityId) }
-                ))
+                val typeKey = EntityTypeKey.create(CounterCommand::class.java, entityId)
+                shardSystem.init(Entity.of(typeKey) { CounterActor.create(it.entityId) })
             }
         }
+    }
 
-        // ClusterSingleton
-        val single:ClusterSingleton = ClusterSingleton.get(mainStage)
+    private fun initializeClusterSingleton() {
+        val single = ClusterSingleton.get(mainStage)
         singleCount = single.init(
             SingletonActor.of(
                 Behaviors.supervise(CounterActor.create("singleId"))
                     .onFailure(SupervisorStrategy.restartWithBackoff(
-                        Duration.ofSeconds(1), Duration.ofSeconds(2), 0.2)
-                    ),
-                "GlobalCounter"))
-
+                        Duration.ofSeconds(1), Duration.ofSeconds(2), 0.2
+                    )),
+                "GlobalCounter"
+            )
+        )
     }
 
     @PreDestroy
