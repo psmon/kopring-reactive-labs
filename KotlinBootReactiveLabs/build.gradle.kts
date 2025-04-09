@@ -43,6 +43,8 @@ val jackson_version = "2.15.2"
 
 val commonModelVersion = "0.0.1-SNAPSHOT"
 
+val kotestVersion="5.9.1"
+
 dependencies {
 
     // External module
@@ -128,8 +130,8 @@ dependencies {
     testImplementation("com.squareup.okhttp3:okhttp:4.12.0")
 
     //  - kotest (testCode 작성시 도움을 주는 라이브러리)
-    testImplementation("io.kotest:kotest-runner-junit5:5.9.1")
-    testImplementation("io.kotest:kotest-assertions-core:5.9.1")
+    testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
+    testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation("io.kotest.extensions:kotest-extensions-spring:1.3.0")
     //  - mockk (mocking 라이브러리 - mockito 대체)
     testImplementation("io.mockk:mockk:1.13.13")
