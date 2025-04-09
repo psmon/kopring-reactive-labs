@@ -4,6 +4,14 @@ plugins {
     kotlin("plugin.spring") version "2.0.0"
     id("org.springframework.boot") version "3.3.4"
     id("io.spring.dependency-management") version "1.1.6"
+    id("org.sonarqube") version "6.0.1.5171"
+}
+
+sonar {
+    properties {
+        property("sonar.projectKey", "kotlin-reactive")
+        property("sonar.projectName", "kotlin-reactive")
+    }
 }
 
 group = "org.example"
@@ -42,6 +50,8 @@ val jwt_version = "0.11.5"
 val jackson_version = "2.15.2"
 
 val commonModelVersion = "0.0.1-SNAPSHOT"
+
+val kotestVersion="5.9.1"
 
 dependencies {
 
@@ -128,8 +138,8 @@ dependencies {
     testImplementation("com.squareup.okhttp3:okhttp:4.12.0")
 
     //  - kotest (testCode 작성시 도움을 주는 라이브러리)
-    testImplementation("io.kotest:kotest-runner-junit5:5.9.1")
-    testImplementation("io.kotest:kotest-assertions-core:5.9.1")
+    testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
+    testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation("io.kotest.extensions:kotest-extensions-spring:1.3.0")
     //  - mockk (mocking 라이브러리 - mockito 대체)
     testImplementation("io.mockk:mockk:1.13.13")

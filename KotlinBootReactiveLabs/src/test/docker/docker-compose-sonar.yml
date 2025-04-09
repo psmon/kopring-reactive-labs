@@ -1,0 +1,33 @@
+version: '2'
+services:
+  sonarqube:
+    image: sonarqube:community
+    depends_on:
+      - db
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://db:5432/sonar
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: sonar
+    volumes:
+      - /media/psmon/ssd/sonar/data:/opt/sonarqube/data
+      - /media/psmon/ssd/sonar/extensions:/opt/sonarqube/extensions
+      - /media/psmon/ssd/sonar/logs:/opt/sonarqube/logs
+    ports:
+      - "9000:9000"
+    ulimits:
+      nproc: 131072
+      nofile:
+        soft: 8192
+        hard: 131072
+    labels:
+      io.rancher.scheduler.affinity:host_label: server=latemain
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: sonar
+      POSTGRES_PASSWORD: sonar
+    volumes:
+      - /media/psmon/ssd/sonar/data/postgres:/var/lib/postgresql
+      - /media/psmon/ssd/sonar/data/postgres_data:/var/lib/postgresql/data
+    labels:
+      io.rancher.scheduler.affinity:host_label: server=latemain
