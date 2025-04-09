@@ -3,9 +3,11 @@ package org.example.kotlinbootreactivelabs.actor.bulkprocessor
 import org.apache.pekko.actor.Cancellable
 import org.apache.pekko.actor.typed.ActorRef
 import org.apache.pekko.actor.typed.Behavior
-import org.apache.pekko.actor.typed.javadsl.*
+import org.apache.pekko.actor.typed.javadsl.AbstractBehavior
+import org.apache.pekko.actor.typed.javadsl.ActorContext
+import org.apache.pekko.actor.typed.javadsl.Behaviors
+import org.apache.pekko.actor.typed.javadsl.Receive
 import java.time.Duration
-import kotlin.jvm.java
 
 sealed class BulkProcessorCommand
 data class DataEvent(val data: Any, val replyTo: ActorRef<Any>) : BulkProcessorCommand()
