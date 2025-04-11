@@ -40,17 +40,23 @@ class SocketHandleForCounselor(
     private lateinit var counselorActor: ActorRef<CounselorCommand>
 
     override fun handle(session: WebSocketSession): Mono<Void> {
-        return session.receive()
-            .map { it.payloadAsText }
-            .flatMap { payload ->
-                val webSocketMessage: CounselorWsMessage = objectMapper.readValue(payload)
-                when (webSocketMessage.type) {
-                    "login" -> handleLogin(session, webSocketMessage.data)
-                    else -> handleAuthMessages(session, webSocketMessage)
+        return Mono.defer {
+            session.receive()
+                .map { it.payloadAsText }
+                .flatMap { payload ->
+                    val webSocketMessage: CounselorWsMessage = objectMapper.readValue(payload)
+                    when (webSocketMessage.type) {
+                        "login" -> handleLogin(session, webSocketMessage.data)
+                        else -> handleAuthMessages(session, webSocketMessage)
+                    }
+                    Mono.empty<Void>()
                 }
-                Mono.empty<Void>()
-            }
-            .then()
+                .doFinally {
+                    // TODO : 세션 종료 시 필요한 정리 작업
+                    // counselorActor.tell(RemoveCounselorSocketSession(session))
+                }
+                .then()
+        }
     }
 
     private fun handleLogin(session: WebSocketSession, token: String?) {
