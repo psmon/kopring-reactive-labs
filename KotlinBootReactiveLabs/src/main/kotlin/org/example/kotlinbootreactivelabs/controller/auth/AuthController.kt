@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ServerWebExchange
-import reactor.core.publisher.Mono
 
 @RestController
 @RequestMapping("/api/auth")
@@ -19,21 +18,23 @@ import reactor.core.publisher.Mono
 class AuthController(private val authService: SimpleAuthService) {
 
     @PostMapping("/login")
-    fun login(@RequestParam id: String, @RequestParam password: String, @RequestParam identifier: String, @RequestParam nick: String, @RequestParam authType: String): Mono<AuthResponse> {
-        return Mono.fromCallable {
-            authService.authenticate(id, password, identifier, nick, authType)
-                ?: throw LoginFailedException("Login failed")
-        }
+    suspend fun login(
+        @RequestParam id: String,
+        @RequestParam password: String,
+        @RequestParam identifier: String,
+        @RequestParam nick: String,
+        @RequestParam authType: String
+    ): AuthResponse {
+        return authService.authenticate(id, password, identifier, nick, authType)
+            ?: throw LoginFailedException("Login failed")
     }
 
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/validate-token")
-    fun validateToken(exchange: ServerWebExchange): Mono<TokenClaims> {
+    suspend fun validateToken(exchange: ServerWebExchange): TokenClaims {
         val authorizationHeader = exchange.request.headers.getFirst("Authorization")
         val token = authorizationHeader?.removePrefix("Bearer ")?.trim()
             ?: throw IllegalArgumentException("Missing or invalid Authorization header")
-        return Mono.fromCallable {
-            authService.getClaimsFromToken(token)
-        }
+        return authService.getClaimsFromToken(token)
     }
 }

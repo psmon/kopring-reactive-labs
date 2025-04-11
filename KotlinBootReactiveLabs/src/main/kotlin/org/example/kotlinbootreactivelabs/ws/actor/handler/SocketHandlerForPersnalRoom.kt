@@ -38,39 +38,55 @@ class SocketHandlerForPersnalRoom(
     private lateinit var counselorRoomActor: ActorRef<CounselorRoomCommand>
 
     override fun handle(session: WebSocketSession): Mono<Void> {
-        sessionManagerActor.tell(AddSession(session))
+        return Mono.defer {
+            sessionManagerActor.tell(AddSession(session))
 
-        return session.receive()
-            .map { it.payloadAsText }
-            .flatMap { payload ->
-                val webSocketMessage: PersnalWsMessage = objectMapper.readValue(payload)
-                when (webSocketMessage.type) {
-                    "login" -> handleLogin(session, webSocketMessage.data)
-                    "requestCounseling" -> handleCounselingRequest(session, webSocketMessage.channel)
-                    "sendchat" -> handleSendChat(session, webSocketMessage.data)
-                    else -> handleOtherMessages(session, webSocketMessage)
+            session.receive()
+                .map { it.payloadAsText }
+                .flatMap { payload ->
+                    val webSocketMessage: PersnalWsMessage = objectMapper.readValue(payload)
+                    when (webSocketMessage.type) {
+                        "login" -> {
+                            handleLogin(session, webSocketMessage.data)
+                            Mono.empty<Void>()
+                        }
+                        "requestCounseling" -> {
+                            handleCounselingRequest(session, webSocketMessage.channel)
+                            Mono.empty<Void>()
+                        }
+                        "sendchat" -> {
+                            handleSendChat(session, webSocketMessage.data)
+                            Mono.empty<Void>()
+                        }
+                        else -> {
+                            handleOtherMessages(session, webSocketMessage)
+                            Mono.empty<Void>()
+                        }
+                    }
                 }
-                Mono.empty<Void>()
-            }
-            .then()
-            .doFinally {
-                sessionManagerActor.tell(RemoveSession(session))
-            }
+                .doFinally {
+                    sessionManagerActor.tell(RemoveSession(session))
+                }
+                .then()
+        }
     }
 
-    private fun handleLogin(session: WebSocketSession, token: String?): Any {
+    private fun handleLogin(session: WebSocketSession, token: String?) {
         if (token == null) {
-            return sendErrorMessage(session, "Login failed: Missing id or password")
+            sendErrorMessage(session, "Login failed: Missing id or password")
+            return
         }
 
-        return try {
+        try {
             val authResponse = authService.getClaimsFromToken(token)
             if (authResponse.authType == "user") {
-                session.attributes["authType"] = "user"
-                session.attributes["token"] = token
-                session.attributes["id"] = authResponse.id
-                session.attributes["nick"] = authResponse.nick
-                session.attributes["identifier"] = authResponse.identifier
+                session.attributes.apply {
+                    put("authType", "user")
+                    put("token", token)
+                    put("id", authResponse.id)
+                    put("nick", authResponse.nick)
+                    put("identifier", authResponse.identifier)
+                }
 
                 sendService.sendEventTextMessage(session, EventTextMessage(
                     type = MessageType.INFO,
@@ -91,7 +107,7 @@ class SocketHandlerForPersnalRoom(
                     actorSystem.scheduler()
                 )
 
-                response.whenComplete { res, ex ->
+                response.whenComplete { res, _ ->
                     if (res is FoundPersonalRoomActor) {
                         persnalRoomActor = res.actorRef
                         sendService.sendEventTextMessage(session, EventTextMessage(
@@ -102,7 +118,7 @@ class SocketHandlerForPersnalRoom(
                             jsondata = null,
                         ))
                     } else {
-                        sendErrorMessage(session, "Failed to obtain CounselorRoomActor reference.")
+                        sendErrorMessage(session, "Failed to obtain PersonalRoomActor reference.")
                     }
                 }
             } else {
@@ -113,20 +129,22 @@ class SocketHandlerForPersnalRoom(
         }
     }
 
-    private fun handleCounselingRequest(session: WebSocketSession, channel: String?): Any {
+    private fun handleCounselingRequest(session: WebSocketSession, channel: String?) {
         val token = session.attributes["token"] as String?
         if (token == null || !isValidToken(token)) {
-            return sendErrorMessage(session, "Invalid or missing token")
+            sendErrorMessage(session, "Invalid or missing token")
+            return
         }
 
         if (channel == null) {
-            return sendErrorMessage(session, "Counseling request failed: Missing channel")
+            sendErrorMessage(session, "Counseling request failed: Missing channel")
+            return
         }
 
         val roomName = "${channel}_${UUID.randomUUID()}"
         sendService.sendEventTextMessage(session, EventTextMessage(
             type = MessageType.INFO,
-            message = "Try Counselor : ${channel}",
+            message = "Try Counselor : $channel",
             from = MessageFrom.SYSTEM,
             id = null,
             jsondata = null,
@@ -172,23 +190,21 @@ class SocketHandlerForPersnalRoom(
                 sendErrorMessage(session, "Counselor manager not found for channel: $channel")
             }
         }
-
-        return Mono.empty<Void>()
     }
 
-    private fun handleSendChat(session: WebSocketSession, chatMessage: String?): Any {
-        return if (chatMessage != null) {
+    private fun handleSendChat(session: WebSocketSession, chatMessage: String?) {
+        if (chatMessage != null) {
             persnalRoomActor.tell(SendToCounselorRoomForCounseling(chatMessage))
-            Mono.empty<Void>()
         } else {
             sendErrorMessage(session, "Chat message is missing")
         }
     }
 
-    private fun handleOtherMessages(session: WebSocketSession, webSocketMessage: PersnalWsMessage): Any {
+    private fun handleOtherMessages(session: WebSocketSession, webSocketMessage: PersnalWsMessage) {
         val token = session.attributes["token"] as String?
         if (token == null || !isValidToken(token)) {
-            return sendErrorMessage(session, "Invalid or missing token")
+            sendErrorMessage(session, "Invalid or missing token")
+            return
         }
 
         when (webSocketMessage.type) {
@@ -198,19 +214,18 @@ class SocketHandlerForPersnalRoom(
             "message" -> session.attributes["identifier"]?.let { identifier -> sessionManagerActor.tell(SendMessageToActor(identifier.toString(), webSocketMessage.data.toString())) }
             else -> sendErrorMessage(session, "Unknown message type: ${webSocketMessage.type}")
         }
-        return Mono.empty<Void>()
     }
 
     private fun isValidToken(token: String): Boolean {
         return try {
             authService.getClaimsFromToken(token)
             true
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             false
         }
     }
 
-    private fun sendErrorMessage(session: WebSocketSession, message: String): Any {
+    private fun sendErrorMessage(session: WebSocketSession, message: String) {
         sendService.sendEventTextMessage(session, EventTextMessage(
             type = MessageType.ERROR,
             message = message,
@@ -218,6 +233,5 @@ class SocketHandlerForPersnalRoom(
             id = null,
             jsondata = null,
         ))
-        return Mono.empty<Void>()
     }
 }
