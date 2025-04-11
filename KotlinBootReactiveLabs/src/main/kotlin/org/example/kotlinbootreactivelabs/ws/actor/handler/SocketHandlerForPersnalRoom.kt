@@ -91,7 +91,7 @@ class SocketHandlerForPersnalRoom(
                     actorSystem.scheduler()
                 )
 
-                response.whenComplete { res, ex ->
+                response.whenComplete { res, _ ->
                     if (res is FoundPersonalRoomActor) {
                         persnalRoomActor = res.actorRef
                         sendService.sendEventTextMessage(session, EventTextMessage(
@@ -174,6 +174,7 @@ class SocketHandlerForPersnalRoom(
         }
 
         return Mono.empty<Void>()
+
     }
 
     private fun handleSendChat(session: WebSocketSession, chatMessage: String?): Any {

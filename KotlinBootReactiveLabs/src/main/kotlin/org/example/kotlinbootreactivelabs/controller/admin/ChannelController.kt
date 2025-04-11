@@ -1,6 +1,7 @@
 package org.example.kotlinbootreactivelabs.controller.admin
 
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.future.await
 import org.apache.pekko.actor.typed.ActorRef
 import org.apache.pekko.actor.typed.ActorSystem
 import org.apache.pekko.actor.typed.javadsl.AskPattern
@@ -37,39 +38,40 @@ class ChannelController(
     private val timeout: Duration = Duration.ofSeconds(5)
 
     @PostMapping("/add-counselor-manager")
-    fun addCounselorManager(@RequestParam channel: String): Mono<String> {
-        return Mono.fromCompletionStage(
-            AskPattern.ask(
-                supervisorChannelActor,
-                { replyTo: ActorRef<SupervisorChannelResponse> -> CreateCounselorManager(channel, replyTo) },
-                timeout,
-                actorSystem.scheduler()
-            ).thenApply { response ->
-                when (response) {
-                    is CounselorManagerCreated -> "Counselor Manager for channel $channel created successfully."
-                    is SupervisorErrorStringResponse -> response.message
-                    else -> "Unknown error occurred."
-                }
-            }
-        )
+    suspend fun addCounselorManager(@RequestParam channel: String): String {
+        val response = AskPattern.ask(
+            supervisorChannelActor,
+            { replyTo: ActorRef<SupervisorChannelResponse> -> CreateCounselorManager(channel, replyTo) },
+            timeout,
+            actorSystem.scheduler()
+        ).await()
+
+        return when (response) {
+            is CounselorManagerCreated -> "Counselor Manager for channel $channel created successfully."
+            is SupervisorErrorStringResponse -> response.message
+            else -> "Unknown error occurred."
+        }
     }
 
     @GetMapping("/list-counselor-managers")
-    fun listCounselorManagers(): Mono<List<String>> {
-        return Mono.fromCompletionStage(
-            AskPattern.ask(
-                supervisorChannelActor,
-                { replyTo: ActorRef<SupervisorChannelResponse> -> GetAllCounselorManagers(replyTo) },
-                timeout,
-                actorSystem.scheduler()
-            ).thenApply { response ->
-                when (response) {
-                    is AllCounselorManagers -> response.channels
-                    else -> emptyList()
-                }
-            }
-        )
+    suspend fun listCounselorManagers(): List<String> {
+        val response = AskPattern.ask(
+            supervisorChannelActor,
+            { replyTo: ActorRef<SupervisorChannelResponse> -> GetAllCounselorManagers(replyTo) },
+            timeout,
+            actorSystem.scheduler()
+        ).await()
+
+        return when (response) {
+            is AllCounselorManagers -> response.channels
+            else -> emptyList()
+        }
     }
+
+
+    // 다양한 방법으로 동시성처리가 가능하며, 일관성있는 코루틴방식 권장되며 다양성 테크참고:
+    // 코루틴을 사용하면 Mono/Flux의 체이닝보다 자연스러운 흐름을 만들 수 있어 도메인 로직을 깔끔하게 표현 가능
+    // 다만, 완전한 코루틴 기반으로 바꾼다면 Reactor Context ↔ CoroutineContext 전환 고려해야 함
 
     @GetMapping("/list-counselor-managers-stream")
     fun listCounselorManagersByStream(): Mono<List<String>> {
@@ -122,6 +124,4 @@ class ChannelController(
             }
         }
     }
-
-
 }
