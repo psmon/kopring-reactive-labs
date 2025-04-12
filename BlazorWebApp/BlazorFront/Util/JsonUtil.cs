@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 
-namespace NeoChat.Util
+namespace BlazorFront.Util
 {
     public class JsonUtil
     {
