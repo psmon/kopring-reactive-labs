@@ -10,14 +10,11 @@ import org.example.kotlinbootreactivelabs.ws.actor.basic.SimpleSessionCommand.Si
 import org.example.kotlinbootreactivelabs.ws.actor.basic.SimpleSessionCommand.SimpleRemoveSession
 import org.example.kotlinbootreactivelabs.ws.actor.basic.SimpleSessionCommand.SimpleSubscribeToTopic
 import org.example.kotlinbootreactivelabs.ws.actor.basic.SimpleSessionCommand.SimpleUnsubscribeFromTopic
-import org.example.kotlinbootreactivelabs.ws.actor.chat.AddSession
-import org.example.kotlinbootreactivelabs.ws.actor.chat.UserSessionCommand
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.socket.WebSocketHandler
 import org.springframework.web.reactive.socket.WebSocketSession
 import reactor.core.publisher.Mono
 
-//data class WebSocketMessage(val type: String, val topic: String? = null, val data: String? = null)
 
 @Component
 class SocketActorHandler(
@@ -27,40 +24,42 @@ class SocketActorHandler(
 ) : WebSocketHandler {
 
     override fun handle(session: WebSocketSession): Mono<Void> {
-        val noSender = akka.getMainStage().ignoreRef<SimpleUserSessionCommandResponse>()
-        sessionManager.tell(SimpleAddSession(session, noSender))
+        return Mono.defer {
+            val noSender = akka.getMainStage().ignoreRef<SimpleUserSessionCommandResponse>()
+            sessionManager.tell(SimpleAddSession(session, noSender))
 
-        return session.receive()
-            .map { it.payloadAsText }
-            .flatMap { payload ->
-                when {
-                    payload.startsWith("subscribe:") -> {
-                        val topic = payload.substringAfter("subscribe:")
-                        sessionManager.tell(SimpleSubscribeToTopic(session.id, topic, noSender))
-                        Mono.empty<Void>()
-                    }
-                    payload.startsWith("unsubscribe:") -> {
-                        val topic = payload.substringAfter("unsubscribe:")
-                        sessionManager.tell(SimpleUnsubscribeFromTopic(session.id, topic, noSender))
-                        Mono.empty<Void>()
-                    }
-                    else -> {
-                        sendService.sendEventTextMessage(
-                            session, EventTextMessage(
-                                type = MessageType.CHAT,
-                                message = "Echo: $payload",
-                                from = MessageFrom.SYSTEM,
-                                id = null,
-                                jsondata = null,
+            session.receive()
+                .map { it.payloadAsText }
+                .flatMap { payload ->
+                    when {
+                        payload.startsWith("subscribe:") -> {
+                            val topic = payload.substringAfter("subscribe:")
+                            sessionManager.tell(SimpleSubscribeToTopic(session.id, topic, noSender))
+                            Mono.empty<Void>()
+                        }
+                        payload.startsWith("unsubscribe:") -> {
+                            val topic = payload.substringAfter("unsubscribe:")
+                            sessionManager.tell(SimpleUnsubscribeFromTopic(session.id, topic, noSender))
+                            Mono.empty<Void>()
+                        }
+                        else -> {
+                            sendService.sendEventTextMessage(
+                                session, EventTextMessage(
+                                    type = MessageType.CHAT,
+                                    message = "Echo: $payload",
+                                    from = MessageFrom.SYSTEM,
+                                    id = null,
+                                    jsondata = null,
+                                )
                             )
-                        )
-                        Mono.empty<Void>()
+                            Mono.empty<Void>()
+                        }
                     }
                 }
-            }
-            .then()
-            .doFinally {
-                sessionManager.tell(SimpleRemoveSession(session, noSender))
-            }
+                .then()
+                .doFinally {
+                    sessionManager.tell(SimpleRemoveSession(session, noSender))
+                }
+        }
     }
 }
