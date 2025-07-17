@@ -20,8 +20,8 @@ AgenticCoding/Projects는 여기서 구성된 프롬프트에의해 생성된 �
 
 ### 검증된 프롬프트 목록
 
-- [SSE-PUSH 시스템](./Prompt/00_SSE-PUSH-SYSTEM.md) - SSE-PUSH Pub/Sub 액터모델을 이용한 푸시시스템을 생성합니다.
-- [액터 동시성 처리](./Prompt/01_ACTOR_CONCURRENCY.md) - 자바/코틀린의 동시성처리를 함께 이용해 액터모델의 기본기인 TELL/ASK 메시패턴을 이용하는 헬로우액터를 생성합니다.
+- [SSE-PUSH 시스템](./Prompt/00_SSE-PUSH-SYSTEM.md) - 00_SSE-PUSH-SYSTEM.md 지침을 수행해
+- [액터 동시성 처리](./Prompt/01_ACTOR_CONCURRENCY.md) - 01_ACTOR_CONCURRENCY.md 지침을 수행해
 
 > **참고**: 액터모델은 자바(+코틀린)가 지원하는 다양한 동시성프로그래밍을 이해하며 이를 이용하기때문에, 동시성 처리 기본기는 중요합니다.
 
