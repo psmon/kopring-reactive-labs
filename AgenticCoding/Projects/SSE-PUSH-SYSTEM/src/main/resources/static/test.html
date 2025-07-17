@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>SSE 간단 테스트</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        button {
+            margin: 10px 0;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        #status {
+            margin: 20px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        #events {
+            margin: 20px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            height: 300px;
+            overflow-y: auto;
+            background: #f5f5f5;
+        }
+        .event {
+            margin: 5px 0;
+            padding: 5px;
+            background: white;
+            border-radius: 3px;
+        }
+        .connected {
+            background: #d4edda;
+            color: #155724;
+        }
+        .disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <h1>SSE Push System 간단 테스트</h1>
+    
+    <div>
+        <label>User ID: <input type="text" id="userId" value="testuser"></label>
+    </div>
+    
+    <div>
+        <button id="connectBtn" onclick="connect()">연결</button>
+        <button id="disconnectBtn" onclick="disconnect()" disabled>연결 해제</button>
+        <button id="subscribeBtn" onclick="subscribe()" disabled>News 구독</button>
+        <button id="publishBtn" onclick="publish()" disabled>이벤트 발행</button>
+    </div>
+    
+    <div id="status" class="disconnected">연결 안됨</div>
+    
+    <div id="events"></div>
+    
+    <script>
+        let eventSource = null;
+        let connectionState = 'disconnected';
+        
+        function updateUI() {
+            const connected = connectionState === 'connected';
+            document.getElementById('connectBtn').disabled = connected;
+            document.getElementById('disconnectBtn').disabled = !connected;
+            document.getElementById('subscribeBtn').disabled = !connected;
+            document.getElementById('publishBtn').disabled = !connected;
+            
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = connected ? 'connected' : 'disconnected';
+            statusDiv.textContent = connected ? '연결됨' : '연결 안됨';
+        }
+        
+        function addEvent(text) {
+            const eventsDiv = document.getElementById('events');
+            const eventDiv = document.createElement('div');
+            eventDiv.className = 'event';
+            eventDiv.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+            eventsDiv.insertBefore(eventDiv, eventsDiv.firstChild);
+        }
+        
+        function connect() {
+            const userId = document.getElementById('userId').value;
+            addEvent(`연결 시도 중... userId: ${userId}`);
+            
+            const url = `/api/sse/stream?userId=${userId}`;
+            eventSource = new EventSource(url);
+            
+            // SSE 연결이 생성되면 즉시 connected로 간주
+            connectionState = 'connected';
+            updateUI();
+            addEvent('EventSource 생성됨');
+            
+            eventSource.onopen = (e) => {
+                addEvent('onopen 이벤트 발생');
+            };
+            
+            eventSource.onmessage = (e) => {
+                addEvent(`메시지 수신: ${e.data}`);
+            };
+            
+            eventSource.onerror = (e) => {
+                addEvent(`오류 발생: readyState=${eventSource.readyState}`);
+                if (eventSource.readyState === EventSource.CLOSED) {
+                    connectionState = 'disconnected';
+                    updateUI();
+                    eventSource = null;
+                }
+            };
+            
+            // 특정 이벤트 리스너
+            eventSource.addEventListener('news', (e) => {
+                addEvent(`[NEWS] ${e.data}`);
+            });
+        }
+        
+        function disconnect() {
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+                connectionState = 'disconnected';
+                updateUI();
+                addEvent('연결 종료됨');
+            }
+        }
+        
+        function subscribe() {
+            const userId = document.getElementById('userId').value;
+            fetch(`/api/sse/subscribe?userId=${userId}&topic=news`, { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    addEvent(`구독 성공: ${JSON.stringify(data)}`);
+                })
+                .catch(error => {
+                    addEvent(`구독 실패: ${error}`);
+                });
+        }
+        
+        function publish() {
+            const data = {
+                topic: 'news',
+                data: '테스트 이벤트 ' + new Date().toLocaleTimeString()
+            };
+            
+            fetch('/api/push/event', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+                .then(response => response.json())
+                .then(result => {
+                    addEvent(`발행 성공: ${result.message}`);
+                })
+                .catch(error => {
+                    addEvent(`발행 실패: ${error}`);
+                });
+        }
+        
+        // 초기 UI 설정
+        updateUI();
+    </script>
+</body>
+</html>

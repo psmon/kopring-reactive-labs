@@ -39,3 +39,5 @@ infra/testLambda/out
 /springweb/src/jmh/generated
 *.salive
 /KotlinBootReactiveLabs/.kotlin
+/.claude
+AgenticCoding/Projects/SSE-PUSH-SYSTEM/app.log

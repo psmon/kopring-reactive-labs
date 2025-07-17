@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSE Push System Test Client</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .container {
+            display: flex;
+            height: calc(100vh - 60px);
+            gap: 10px;
+            padding: 10px;
+        }
+        
+        .panel {
+            flex: 1;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .panel-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .panel-header h2 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background-color 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        
+        button.disconnect {
+            background-color: #e74c3c;
+        }
+        
+        button.disconnect:hover {
+            background-color: #c0392b;
+        }
+        
+        button.secondary {
+            background-color: #95a5a6;
+        }
+        
+        button.secondary:hover {
+            background-color: #7f8c8d;
+        }
+        
+        .status {
+            padding: 8px 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .status.connected {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.disconnected {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .events-container {
+            flex: 1;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .event {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: white;
+            border-radius: 4px;
+            border-left: 4px solid #3498db;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        
+        .event-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .event-topic {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .event-data {
+            color: #333;
+            word-wrap: break-word;
+        }
+        
+        .topics-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        
+        .topic-badge {
+            background-color: #3498db;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .topic-badge button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 0;
+            margin: 0;
+            font-size: 16px;
+            line-height: 1;
+        }
+        
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .response-display {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>SSE Push System Test Client</h1>
+    </div>
+    
+    <div class="container">
+        <!-- Left Panel: SSE Receiver -->
+        <div class="panel">
+            <div class="panel-header">
+                <h2>SSE Receiver (Subscribe)</h2>
+                <div id="connectionStatus" class="status disconnected">Disconnected</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="userId">User ID:</label>
+                <input type="text" id="userId" placeholder="Enter user ID (e.g., user1)" value="user1">
+            </div>
+            
+            <div class="form-group">
+                <label for="subscribeTopic">Subscribe to Topic:</label>
+                <input type="text" id="subscribeTopic" placeholder="Enter topic name">
+            </div>
+            
+            <div class="action-buttons">
+                <button id="connectBtn" onclick="connect()">Connect SSE</button>
+                <button id="disconnectBtn" onclick="disconnect()" disabled>Disconnect</button>
+                <button id="subscribeBtn" onclick="subscribeTopic()" disabled>Subscribe</button>
+                <button id="clearEventsBtn" onclick="clearEvents()">Clear Events</button>
+            </div>
+            
+            <div class="form-group">
+                <label>Subscribed Topics:</label>
+                <div id="topicsList" class="topics-list"></div>
+            </div>
+            
+            <div class="form-group" style="flex: 1; display: flex; flex-direction: column;">
+                <label>Received Events:</label>
+                <div id="eventsContainer" class="events-container"></div>
+            </div>
+        </div>
+        
+        <!-- Right Panel: SSE Publisher -->
+        <div class="panel">
+            <div class="panel-header">
+                <h2>Event Publisher (Push)</h2>
+            </div>
+            
+            <div class="form-group">
+                <label for="publishTopic">Topic:</label>
+                <input type="text" id="publishTopic" placeholder="Enter topic name" value="news">
+            </div>
+            
+            <div class="form-group">
+                <label for="eventData">Event Data:</label>
+                <textarea id="eventData" rows="4" placeholder="Enter event data">Breaking news: Test event!</textarea>
+            </div>
+            
+            <div class="action-buttons">
+                <button onclick="publishEvent()">Publish Event</button>
+                <button onclick="publishBatch()">Publish Batch (3 events)</button>
+            </div>
+            
+            <div class="form-group">
+                <label for="broadcastTopics">Broadcast Topics (comma-separated):</label>
+                <input type="text" id="broadcastTopics" placeholder="topic1,topic2,topic3" value="news,updates,alerts">
+            </div>
+            
+            <div class="form-group">
+                <label for="broadcastData">Broadcast Data:</label>
+                <textarea id="broadcastData" rows="3" placeholder="Enter broadcast data">System-wide announcement!</textarea>
+            </div>
+            
+            <div class="action-buttons">
+                <button onclick="broadcastEvent()">Broadcast to Multiple Topics</button>
+                <button onclick="getTopicHistory()">Get Topic History</button>
+            </div>
+            
+            <div class="form-group">
+                <label>Response:</label>
+                <div id="responseDisplay" class="response-display">No response yet...</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let eventSource = null;
+        let subscribedTopics = new Set();
+        let isConnected = false;
+        
+        function updateConnectionStatus(connected) {
+            isConnected = connected;
+            const status = document.getElementById('connectionStatus');
+            const connectBtn = document.getElementById('connectBtn');
+            const disconnectBtn = document.getElementById('disconnectBtn');
+            const subscribeBtn = document.getElementById('subscribeBtn');
+            
+            if (connected) {
+                status.textContent = 'Connected';
+                status.className = 'status connected';
+                connectBtn.disabled = true;
+                disconnectBtn.disabled = false;
+                subscribeBtn.disabled = false;
+            } else {
+                status.textContent = 'Disconnected';
+                status.className = 'status disconnected';
+                connectBtn.disabled = false;
+                disconnectBtn.disabled = true;
+                subscribeBtn.disabled = true;
+            }
+        }
+        
+        function connect() {
+            const userId = document.getElementById('userId').value;
+            if (!userId) {
+                alert('Please enter a user ID');
+                return;
+            }
+            
+            const topics = Array.from(subscribedTopics).join(',');
+            const url = topics 
+                ? `/api/sse/stream?userId=${userId}&topics=${topics}`
+                : `/api/sse/stream?userId=${userId}`;
+            
+            eventSource = new EventSource(url);
+            
+            // SSE doesn't always trigger onopen immediately
+            // Consider connected when EventSource is created
+            console.log('SSE connection initiated');
+            updateConnectionStatus(true);
+            
+            eventSource.onopen = () => {
+                console.log('SSE connection opened');
+                updateConnectionStatus(true);
+            };
+            
+            eventSource.onmessage = (event) => {
+                console.log('Received event:', event);
+                displayEvent(JSON.parse(event.data));
+            };
+            
+            eventSource.addEventListener('news', (event) => {
+                console.log('News event:', event);
+                displayEvent(JSON.parse(event.data));
+            });
+            
+            eventSource.addEventListener('updates', (event) => {
+                console.log('Updates event:', event);
+                displayEvent(JSON.parse(event.data));
+            });
+            
+            eventSource.addEventListener('alerts', (event) => {
+                console.log('Alerts event:', event);
+                displayEvent(JSON.parse(event.data));
+            });
+            
+            eventSource.onerror = (error) => {
+                console.error('SSE error:', error);
+                if (eventSource.readyState === EventSource.CLOSED) {
+                    console.log('SSE connection closed');
+                    updateConnectionStatus(false);
+                } else if (eventSource.readyState === EventSource.CONNECTING) {
+                    console.log('SSE reconnecting...');
+                    // Keep status as connected during reconnection attempts
+                }
+            };
+        }
+        
+        function disconnect() {
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+            }
+            updateConnectionStatus(false);
+            // Clear subscribed topics on disconnect
+            subscribedTopics.clear();
+            updateTopicsList();
+        }
+        
+        function subscribeTopic() {
+            const topic = document.getElementById('subscribeTopic').value;
+            const userId = document.getElementById('userId').value;
+            
+            if (!topic) {
+                alert('Please enter a topic name');
+                return;
+            }
+            
+            if (!isConnected) {
+                alert('Please connect first');
+                return;
+            }
+            
+            fetch(`/api/sse/subscribe?userId=${userId}&topic=${topic}`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Subscribe response:', data);
+                subscribedTopics.add(topic);
+                updateTopicsList();
+                document.getElementById('subscribeTopic').value = '';
+                
+                // Add event listener for this topic
+                if (eventSource) {
+                    eventSource.addEventListener(topic, (event) => {
+                        console.log(`${topic} event:`, event);
+                        displayEvent(JSON.parse(event.data));
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Subscribe error:', error);
+                alert('Failed to subscribe to topic');
+            });
+        }
+        
+        function unsubscribeTopic(topic) {
+            const userId = document.getElementById('userId').value;
+            
+            fetch(`/api/sse/unsubscribe?userId=${userId}&topic=${topic}`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Unsubscribe response:', data);
+                subscribedTopics.delete(topic);
+                updateTopicsList();
+            })
+            .catch(error => {
+                console.error('Unsubscribe error:', error);
+            });
+        }
+        
+        function updateTopicsList() {
+            const container = document.getElementById('topicsList');
+            container.innerHTML = '';
+            
+            subscribedTopics.forEach(topic => {
+                const badge = document.createElement('div');
+                badge.className = 'topic-badge';
+                badge.innerHTML = `
+                    ${topic}
+                    <button onclick="unsubscribeTopic('${topic}')" title="Unsubscribe">×</button>
+                `;
+                container.appendChild(badge);
+            });
+        }
+        
+        function displayEvent(event) {
+            const container = document.getElementById('eventsContainer');
+            const eventDiv = document.createElement('div');
+            eventDiv.className = 'event';
+            
+            const timestamp = new Date(event.timestamp).toLocaleTimeString();
+            
+            eventDiv.innerHTML = `
+                <div class="event-header">
+                    <span class="event-topic">Topic: ${event.topic}</span>
+                    <span>ID: ${event.id} | ${timestamp}</span>
+                </div>
+                <div class="event-data">${event.data}</div>
+            `;
+            
+            container.insertBefore(eventDiv, container.firstChild);
+            
+            // Keep only last 50 events
+            while (container.children.length > 50) {
+                container.removeChild(container.lastChild);
+            }
+        }
+        
+        function clearEvents() {
+            document.getElementById('eventsContainer').innerHTML = '';
+        }
+        
+        function displayResponse(response) {
+            document.getElementById('responseDisplay').textContent = 
+                JSON.stringify(response, null, 2);
+        }
+        
+        function publishEvent() {
+            const topic = document.getElementById('publishTopic').value;
+            const data = document.getElementById('eventData').value;
+            
+            if (!topic || !data) {
+                alert('Please enter topic and data');
+                return;
+            }
+            
+            fetch('/api/push/event', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ topic, data })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Publish response:', data);
+                displayResponse(data);
+            })
+            .catch(error => {
+                console.error('Publish error:', error);
+                displayResponse({ error: error.message });
+            });
+        }
+        
+        function publishBatch() {
+            const topic = document.getElementById('publishTopic').value;
+            const baseData = document.getElementById('eventData').value;
+            
+            if (!topic || !baseData) {
+                alert('Please enter topic and data');
+                return;
+            }
+            
+            const events = [
+                { topic, data: baseData + ' (1)' },
+                { topic, data: baseData + ' (2)' },
+                { topic, data: baseData + ' (3)' }
+            ];
+            
+            fetch('/api/push/events/batch', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(events)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Batch publish response:', data);
+                displayResponse(data);
+            })
+            .catch(error => {
+                console.error('Batch publish error:', error);
+                displayResponse({ error: error.message });
+            });
+        }
+        
+        function broadcastEvent() {
+            const topics = document.getElementById('broadcastTopics').value;
+            const data = document.getElementById('broadcastData').value;
+            
+            if (!topics || !data) {
+                alert('Please enter topics and data');
+                return;
+            }
+            
+            fetch(`/api/push/broadcast?topics=${topics}&data=${encodeURIComponent(data)}`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Broadcast response:', data);
+                displayResponse(data);
+            })
+            .catch(error => {
+                console.error('Broadcast error:', error);
+                displayResponse({ error: error.message });
+            });
+        }
+        
+        function getTopicHistory() {
+            const topic = document.getElementById('publishTopic').value;
+            
+            if (!topic) {
+                alert('Please enter a topic name');
+                return;
+            }
+            
+            fetch(`/api/sse/history/${topic}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Topic history:', data);
+                    displayResponse(data);
+                })
+                .catch(error => {
+                    console.error('History error:', error);
+                    displayResponse({ error: error.message });
+                });
+        }
+        
+        // Clean up on page unload
+        window.addEventListener('beforeunload', () => {
+            if (eventSource) {
+                eventSource.close();
+            }
+        });
+    </script>
+</body>
+</html>
