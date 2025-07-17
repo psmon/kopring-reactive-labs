@@ -45,3 +45,6 @@ AgenticCoding/Projects는 여기서 구성된 프롬프트에의해 생성된 �
   - 기업테크 조사는 할루네이션이 있을수 있음으로 실 활용사례는 검색을 한번더 하는것을 권장
 - CRUD만 개발할줄 아는 개발자가 액터모델을 수련하게되면 할수 있는것들? 주로 DB/REDIS에만 의존해 상태없는 프로그래밍만 하는 케이스와 비교해 설명해죠
 - 다양한 AI를 활용해야하는시대 액터모델을 도입했을때~ 효과와 실제 활용한 기업의 사례는?
+
+## Docs
+- https://wiki.webnori.com/display/AKKA/Vibe+Coding+Actor+Model
