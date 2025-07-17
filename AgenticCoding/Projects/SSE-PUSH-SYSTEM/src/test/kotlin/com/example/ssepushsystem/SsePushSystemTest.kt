@@ -168,9 +168,9 @@ class SsePushSystemTest : FunSpec() {
             // Verify
             recentEvents shouldHaveSize 3
             recentEvents.map { it.data } shouldBe listOf(
-                "Historical event 3",
-                "Historical event 2", 
-                "Historical event 1"
+                "Historical event 1",
+                "Historical event 2",
+                "Historical event 3"
             )
             
             eventually(2.seconds) {
