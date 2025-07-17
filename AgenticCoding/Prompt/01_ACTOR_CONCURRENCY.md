@@ -19,7 +19,7 @@ AgenticCoding/Projects/ACTOR_CONCURRENCY 폴더에서 새롭게시작합니다.
 
 ## 참고코드 사전 지식
 
-다음과같은 디렉토리에 참고할만한 샘플코드들이 있씁니다.
+다음과같은 디렉토리에 참고할만한 샘플코드들이 있습니다.
 
 ```
 current working directory:

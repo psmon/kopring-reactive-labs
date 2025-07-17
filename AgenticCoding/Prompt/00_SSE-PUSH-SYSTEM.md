@@ -24,7 +24,7 @@ AgenticCoding/Projects/SSE-PUSH-SYSTEM 폴더에 코틀린기반 스프링부트
 
 ## 참고코드 사전 지식
 
-다음과같은 디렉토리에 참고할만한 샘플코드들이 있씁니다.
+다음과같은 디렉토리에 참고할만한 샘플코드들이 있습니다.
 
 ```
 current working directory:
