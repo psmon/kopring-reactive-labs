@@ -59,3 +59,4 @@ AgenticCoding/Projects는 여기서 구성된 프롬프트에의해 생성된 �
 
 ## Docs
 - https://wiki.webnori.com/display/AKKA/Vibe+Coding+Actor+Model
+- https://wiki.webnori.com/display/AKKA
