@@ -37,7 +37,7 @@ repositories {
 var akka_version = "2.6.2"
 val swagger_version = "2.2.0"
 val scala_version = "2.13"
-val pekko_version = "1.1.2"
+val pekko_version = "1.1.5"
 
 val pekko_kafka_version = "1.1.0"
 
@@ -45,7 +45,7 @@ val pekko_r2dbc_version = "1.0.0"
 val pekko_jdbc_version = "1.1.0"
 
 val r2dbc_mysql = "1.2.0"
-val r2dbc_postgresql = "0.9.3.RELEASE"
+val r2dbc_postgresql = "1.0.0.RELEASE"
 
 val jwt_version = "0.11.5"
 val jackson_version = "2.15.2"
