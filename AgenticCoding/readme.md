@@ -35,9 +35,13 @@ AgenticCoding/Projects는 여기서 구성된 프롬프트에의해 생성된 �
 
 ### 프로젝트 목록
 
-- [SSE Push System](./Projects/SSE-PUSH-SYSTEM/) - Server-Sent Events를 활용한 실시간 푸시 시스템
-- [Actor Concurrency](./Projects/ACTOR_CONCURRENCY/) - 액터 모델 기반 동시성 처리 예제
-- [LLM Throttle](./Projects/LLM-THROTTLE/) - LLM 호출 제약을 통한~ 안정적으로 이용하는, Backpresure Throttle 액터모델 구현
+- [SSE Push System](./Projects/SSE-PUSH-SYSTEM/)
+  - Server-Sent Events를 활용한 실시간 푸시 시스템으로 액터모델과 연결되어 더 강력한 시스템으로 업그레이드 할수 있습니다.
+- [Actor Concurrency](./Projects/ACTOR_CONCURRENCY/) 
+  - 액터 모델 기반 동시성 처리 예제로, JVM이 지원하는 동시성 프로그래밍을 함께 학습합니다.
+- [LLM Throttle](./Projects/LLM-THROTTLE/)
+  - LLM 호출 제약조절을 자동으로 할수 있는 액터장치로, 설계된 액터를 통해 다양한 형태의 메일박스(큐)를 구현할수 있습니다. 
+
 
 ## 액터모델(리액티브 스트림) 학습을 위한 다양한 프롬프트
 
