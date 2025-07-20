@@ -17,7 +17,7 @@
 
 AgenticCoding/Projects는 여기서 구성된 프롬프트에의해 생성된 프로젝트로 참고할수 있으며
 프롬프트를 참고해 다양한 지침을 생성한후 다양한 액터시스템을 구현에 도전할수 있습니다.
-샘플코드의 생성순서는 난이도에 따른 학습순서와 무관하게 작성시도됩니다.
+샘플코드의 생성순서는 난이도에 따른 학습순서와 무관하게 작성되고 있으나~ CRUD가 일반적으로 잘하지 못하는 영역의 구현을 시도하고 있습니다.
 
 ### 검증된 프롬프트 목록
 
@@ -27,6 +27,7 @@ AgenticCoding/Projects는 여기서 구성된 프롬프트에의해 생성된 �
 - [액터 동시성 처리](./Prompt/01_ACTOR_CONCURRENCY.md) - AgenticCoding/Prompt/01_ACTOR_CONCURRENCY.md 지침을 수행해
 - [LLM 토큰 제어](./Prompt/02_LLM_THROTTLE.md) - AgenticCoding/Prompt/02_LLM_THROTTLE.md 지침을 수행해
 - [액터라우팅](./Prompt/03_ACTOR_ROUTER.md) - AgenticCoding/Prompt/03_ACTOR_ROUTER.md 지침을 수행해
+- [액터 스트림](./Prompt/04_ACTOR_STREAM.md) - AgenticCoding/Prompt/04_ACTOR_STREAM.md 지침을 수행해
 
 > **참고**: 액터모델은 자바(+코틀린)가 지원하는 다양한 동시성프로그래밍을 이해하며 이를 이용하기때문에, 동시성 처리 기본기는 중요합니다.
 
@@ -34,7 +35,7 @@ AgenticCoding/Projects는 여기서 구성된 프롬프트에의해 생성된 �
 
 클루드에의해 코딩없이 생성된 프로젝트는 [Projects 디렉토리](./Projects/)에서 확인할수 있습니다.
 
-### 프로젝트 목록
+### 프로젝트 목록 by AI생성
 
 - [SSE Push System](./Projects/SSE-PUSH-SYSTEM/)
   - Server-Sent Events를 활용한 실시간 푸시 시스템으로 액터모델과 연결되어 더 강력한 시스템으로 업그레이드 할수 있습니다.
@@ -44,7 +45,11 @@ AgenticCoding/Projects는 여기서 구성된 프롬프트에의해 생성된 �
   - LLM 호출 제약조절을 자동으로 할수 있는 액터장치로, 설계된 액터를 통해 다양한 형태의 메일박스(큐)를 구현할수 있습니다. 
 - [Actor Router](./Projects/ACTOR_ROUTER/)
   - 액터로 작동되는 모델은, 다양한 라우터 전략을 적용할수 있습니다.
-
+  - 액터라우팅을 통해 다양한 액터를 라우팅하는 방법을 학습합니다.
+- [Actor Stream](./Projects/ACTOR_STREAM/) 
+  - 액터 스트림을 통해 리액티브 스트림을 이해하고, 다양한 스트림 처리기능을 구현합니다.
+  - PekkoStream, Java Streams API, WebFlux, Kotlin Coroutines 등 다양한 스트림 처리 기술을 비교합니다.
+  
 
 ## 액터모델(리액티브 스트림) 학습을 위한 다양한 프롬프트
 
@@ -63,3 +68,58 @@ AgenticCoding/Projects는 여기서 구성된 프롬프트에의해 생성된 �
 ## Docs
 - https://wiki.webnori.com/display/AKKA/Vibe+Coding+Actor+Model
 - https://wiki.webnori.com/display/AKKA
+
+
+### Cluade Code for WSL (Windows Subsystem for Linux) Installation Guide
+
+윈도우 개발자를 위한 CluadeCode 사용을 위한 WSL에서 인스톨
+
+```
+To properly install Node.js packages in WSL that detect your environment as Linux rather than Windows:
+
+1. Install NVM (Node Version Manager) in WSL: wslforcluade.sh 동일파일있음 - 스크립트 안정성 여부확인후 수행권장
+    
+    ```bash
+    sudo apt-get install curl
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
+    ```
+    
+2. Close and reopen your terminal, or run:
+    
+    ```bash
+    source ~/.bashrc
+    ```
+    
+3. Install Node.js using NVM:
+    
+    ```bash
+    nvm install node
+    ```
+    
+4. Verify Node.js is installed in the Linux environment:
+    
+    ```bash
+    which npm
+    ```
+    
+    Should show: `/home/username/.nvm/versions/node/vX.X.X/bin/npm`
+    
+5. Now install packages through this Node.js installation:
+    
+    ```bash
+    npm config set os linux
+    npm install -g @anthropic-ai/claude-code
+    ```
+    
+- **git 설치**
+    
+    ```bash
+    sudo apt install git
+    ```
+    
+- **ripgrep 설치**
+    
+    ```bash
+    sudo apt install ripgrep
+    ```
+```
