@@ -4,6 +4,7 @@ import com.example.actorstream.model.*
 import io.kotest.assertions.timing.eventually
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.apache.pekko.actor.testkit.typed.javadsl.ActorTestKit
 import org.apache.pekko.actor.typed.ActorRef
 import org.junit.jupiter.api.AfterAll
@@ -28,7 +29,7 @@ class StreamProcessorActorTest {
     }
     
     @Test
-    fun `should process text with words and numbers correctly`() = runBlocking {
+    fun `should process text with words and numbers correctly`() = runTest {
         val probe = testKit.createTestProbe<StreamCommand>()
         val actor = testKit.spawn(StreamProcessorActor.create(probe.ref))
         
@@ -46,7 +47,7 @@ class StreamProcessorActorTest {
     }
     
     @Test
-    fun `should handle multiple numbers in text`() = runBlocking {
+    fun `should handle multiple numbers in text`() = runTest {
         val probe = testKit.createTestProbe<StreamCommand>()
         val actor = testKit.spawn(StreamProcessorActor.create(probe.ref))
         
@@ -64,7 +65,7 @@ class StreamProcessorActorTest {
     }
     
     @Test
-    fun `should handle text with no numbers`() = runBlocking {
+    fun `should handle text with no numbers`() = runTest {
         val probe = testKit.createTestProbe<StreamCommand>()
         val actor = testKit.spawn(StreamProcessorActor.create(probe.ref))
         
@@ -82,7 +83,7 @@ class StreamProcessorActorTest {
     }
     
     @Test
-    fun `should handle text with only numbers`() = runBlocking {
+    fun `should handle text with only numbers`() = runTest {
         val probe = testKit.createTestProbe<StreamCommand>()
         val actor = testKit.spawn(StreamProcessorActor.create(probe.ref))
         
@@ -100,7 +101,7 @@ class StreamProcessorActorTest {
     }
     
     @Test
-    fun `should process multiple texts concurrently`() = runBlocking {
+    fun `should process multiple texts concurrently`() = runTest {
         val probe = testKit.createTestProbe<StreamCommand>()
         val actor = testKit.spawn(StreamProcessorActor.create(probe.ref))
         
