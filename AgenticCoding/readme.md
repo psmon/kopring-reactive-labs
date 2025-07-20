@@ -26,6 +26,7 @@ AgenticCoding/Projects는 여기서 구성된 프롬프트에의해 생성된 �
 - [SSE-PUSH 시스템](./Prompt/00_SSE-PUSH-SYSTEM.md) - AgenticCoding/Prompt/00_SSE-PUSH-SYSTEM.md 지침을 수행해
 - [액터 동시성 처리](./Prompt/01_ACTOR_CONCURRENCY.md) - AgenticCoding/Prompt/01_ACTOR_CONCURRENCY.md 지침을 수행해
 - [LLM 토큰 제어](./Prompt/02_LLM_THROTTLE.md) - AgenticCoding/Prompt/02_LLM_THROTTLE.md 지침을 수행해
+- [액터라우팅](./Prompt/03_ACTOR_ROUTER.md) - AgenticCoding/Prompt/03_ACTOR_ROUTER.md 지침을 수행해
 
 > **참고**: 액터모델은 자바(+코틀린)가 지원하는 다양한 동시성프로그래밍을 이해하며 이를 이용하기때문에, 동시성 처리 기본기는 중요합니다.
 
@@ -41,6 +42,8 @@ AgenticCoding/Projects는 여기서 구성된 프롬프트에의해 생성된 �
   - 액터 모델 기반 동시성 처리 예제로, JVM이 지원하는 동시성 프로그래밍을 함께 학습합니다.
 - [LLM Throttle](./Projects/LLM-THROTTLE/)
   - LLM 호출 제약조절을 자동으로 할수 있는 액터장치로, 설계된 액터를 통해 다양한 형태의 메일박스(큐)를 구현할수 있습니다. 
+- [Actor Router](./Projects/ACTOR_ROUTER/)
+  - 액터로 작동되는 모델은, 다양한 라우터 전략을 적용할수 있습니다.
 
 
 ## 액터모델(리액티브 스트림) 학습을 위한 다양한 프롬프트
