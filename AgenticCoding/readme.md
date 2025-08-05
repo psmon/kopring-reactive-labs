@@ -28,6 +28,7 @@ AgenticCoding/Projects는 여기서 구성된 프롬프트에의해 생성된 �
 - [LLM 토큰 제어](./Prompt/02_LLM_THROTTLE.md) - AgenticCoding/Prompt/02_LLM_THROTTLE.md 지침을 수행해
 - [액터라우팅](./Prompt/03_ACTOR_ROUTER.md) - AgenticCoding/Prompt/03_ACTOR_ROUTER.md 지침을 수행해
 - [액터 스트림](./Prompt/04_ACTOR_STREAM.md) - AgenticCoding/Prompt/04_ACTOR_STREAM.md 지침을 수행해
+- [액터 모델을 이용한 다양한 기능 구현](./Prompt/05_ACTOR_THROTTLE.md) - AgenticCoding/Prompt/05_ACTOR_THROTTLE.md 지침을 수행해
 
 > **참고**: 액터모델은 자바(+코틀린)가 지원하는 다양한 동시성프로그래밍을 이해하며 이를 이용하기때문에, 동시성 처리 기본기는 중요합니다.
 
@@ -49,6 +50,9 @@ AgenticCoding/Projects는 여기서 구성된 프롬프트에의해 생성된 �
 - [Actor Stream](./Projects/ACTOR_STREAM/) 
   - 액터 스트림을 통해 리액티브 스트림을 이해하고, 다양한 스트림 처리기능을 구현합니다.
   - PekkoStream, Java Streams API, WebFlux, Kotlin Coroutines 등 다양한 스트림 처리 기술을 비교합니다.
+- [Actor Throttle](./Projects/ACTOR_THROTTLE/)
+  - 액터를 이용한 LLM 호출 제약장치로, Backpressure를 적용한 액터모델을 구현합니다.
+  - LLM 호출을 제어하고, 토큰 측정기를 가상 클래스로 구현하여 다양한 상황에서의 토큰 사용량을 관리합니다.
   
 
 ## 액터모델(리액티브 스트림) 학습을 위한 다양한 프롬프트
