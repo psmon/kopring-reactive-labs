@@ -41,7 +41,7 @@ val pekko_version = "1.1.5"
 
 val pekko_kafka_version = "1.1.0"
 
-val pekko_r2dbc_version = "1.0.0"
+val pekko_r2dbc_version = "1.1.0-M1"
 val pekko_jdbc_version = "1.1.0"
 
 val r2dbc_mysql = "1.2.0"
