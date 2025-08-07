@@ -40,3 +40,4 @@ infra/testLambda/out
 /KotlinBootReactiveLabs/.kotlin
 /.claude
 AgenticCoding/Projects/SSE-PUSH-SYSTEM/app.log
+/AgenticCoding/Projects/CONNECTOR_KAFKA/.kotlin
