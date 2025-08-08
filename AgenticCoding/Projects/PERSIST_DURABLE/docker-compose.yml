@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: persist-durable-postgres
+    environment:
+      POSTGRES_DB: persist_durable
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - persist-durable-network
+
+volumes:
+  postgres_data:
+
+networks:
+  persist-durable-network:
+    driver: bridge

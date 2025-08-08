@@ -29,6 +29,8 @@ AgenticCoding/Projects는 여기서 구성된 프롬프트에의해 생성된 �
 - [액터라우팅](./Prompt/03_ACTOR_ROUTER.md) - AgenticCoding/Prompt/03_ACTOR_ROUTER.md 지침을 수행해
 - [액터 스트림](./Prompt/04_ACTOR_STREAM.md) - AgenticCoding/Prompt/04_ACTOR_STREAM.md 지침을 수행해
 - [액터 모델을 이용한 다양한 기능 구현](./Prompt/05_ACTOR_THROTTLE.md) - AgenticCoding/Prompt/05_ACTOR_THROTTLE.md 지침을 수행해
+- [Kafka 커넥터](./Prompt/06_CONNECTOR_KAFKA.md) - AgenticCoding/Prompt/06_CONNECTOR_KAFKA.md 지침을 수행해
+- [액터영속성](./Prompt/07_PERSIST_DURABLE.md) - AgenticCoding/Prompt/PERSIST_DURABLE.md 지침을 수행해
 
 > **참고**: 액터모델은 자바(+코틀린)가 지원하는 다양한 동시성프로그래밍을 이해하며 이를 이용하기때문에, 동시성 처리 기본기는 중요합니다.
 
@@ -53,7 +55,13 @@ AgenticCoding/Projects는 여기서 구성된 프롬프트에의해 생성된 �
 - [Actor Throttle](./Projects/ACTOR_THROTTLE/)
   - 액터를 이용한 LLM 호출 제약장치로, Backpressure를 적용한 액터모델을 구현합니다.
   - LLM 호출을 제어하고, 토큰 측정기를 가상 클래스로 구현하여 다양한 상황에서의 토큰 사용량을 관리합니다.
-  
+- [KafkaConnector](./Projects/CONNECTOR_KAFKA/)
+  - Kafka를 액터모델과 연결해 Stream커넥트를 활용해 구현합니다. 
+  - 샘플은 Kafka이며  RabbitMQ, Redis 등도 Pekko Streams, Reactive Streams컨셉을 이용해 연결가능합니다.
+- [PERSIST_DURABLE.md](./Prompt/PERSIST_DURABLE.md)  
+  - 액터모델을 이용한 영속성 및 내구성 있는 상태 관리 구현
+  - Akka Persistence를 활용해 액터의 상태를 영속화하고, 장애 복구 시에도 상태를 유지할 수 있도록 합니다.
+
 
 ## 액터모델(리액티브 스트림) 학습을 위한 다양한 프롬프트
 
