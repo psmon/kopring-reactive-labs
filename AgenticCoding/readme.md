@@ -1,8 +1,90 @@
-# 액터모델 +리액티브 스트림을 코드구현 by Claude Code
+# 액터모델 + 리액티브 스트림 코드구현 by Claude Code
 
 **리액티브 스트림(Reactive Streams)**은 비동기 데이터 처리와 흐름 제어(Backpressure)를 표준화한 자바 진영의 명세로, Netflix, Lightbend, Pivotal 등 주요 기업들이 참여해 2015년에 정식 발표되었습니다. Java 9부터는 Flow API로 포함되어 공식적인 JVM 표준이 되었으며, Spring WebFlux, Akka Streams, Project Reactor, RxJava 등 다양한 프레임워크들이 이를 기반으로 비동기 스트림 처리의 신뢰성과 일관성을 제공하고 있습니다. 특히 고속 데이터 전송, 스트리밍 분석, 웹소켓 기반 실시간 서비스에 핵심적인 기술로 자리 잡았습니다.
 
 **액터모델(Actor Model)**은 상태를 메시지를 통해만 변경할 수 있는 독립적인 액터 단위로 분산 시스템을 구성하는 개념으로, 동시성 문제를 안전하게 해결하면서 수평 확장이 용이하다는 장점이 있습니다. Erlang/OTP, Akka(Lightbend), Microsoft Orleans 등의 구현체를 통해 WhatsApp, LinkedIn, Tesla, Microsoft 같은 글로벌 기업들이 실시간 통신, IoT, 게임, AI 에이전트 등에 성공적으로 활용하고 있으며, 이벤트 기반 구조와 궁합이 좋아 복잡한 비즈니스 로직이나 AI 파이프라인의 오케스트레이션에도 탁월한 구조를 제공합니다.
+
+## 전체 아키텍처 개념도
+
+```mermaid
+graph TB
+    subgraph "Client Layer"
+        WEB[Web Client]
+        MOB[Mobile Client]
+        API[API Client]
+    end
+    
+    subgraph "Spring WebFlux Layer"
+        CTRL[Controllers]
+        SSE[SSE Endpoints]
+        WS[WebSocket Handlers]
+    end
+    
+    subgraph "Actor System (Apache Pekko)"
+        MAIN[MainStageActor]
+        
+        subgraph "Business Logic Actors"
+            USER[UserEventActor]
+            TOPIC[TopicManagerActor]
+            WORKER[WorkerActor]
+            THROTTLE[ThrottleActor]
+            PERSIST[PersistentActor]
+        end
+        
+        subgraph "Router & Stream Actors"
+            ROUTER[RouterActor]
+            STREAM[StreamProcessorActor]
+        end
+    end
+    
+    subgraph "External Systems"
+        KAFKA[Kafka Cluster]
+        PG[PostgreSQL]
+        REDIS[Redis Cache]
+    end
+    
+    subgraph "Reactive Streams"
+        PEKKO_STREAMS[Pekko Streams]
+        REACTOR[Project Reactor]
+        FLOW[Java Flow API]
+    end
+    
+    WEB --> CTRL
+    MOB --> SSE
+    API --> WS
+    
+    CTRL --> MAIN
+    SSE --> USER
+    WS --> TOPIC
+    
+    MAIN --> USER
+    MAIN --> TOPIC
+    MAIN --> WORKER
+    MAIN --> THROTTLE
+    MAIN --> PERSIST
+    
+    ROUTER --> WORKER
+    STREAM --> PEKKO_STREAMS
+    
+    USER --> KAFKA
+    PERSIST --> PG
+    THROTTLE --> REDIS
+    
+    PEKKO_STREAMS --> REACTOR
+    REACTOR --> FLOW
+    
+    classDef clientStyle fill:#e1f5fe
+    classDef springStyle fill:#fff3e0
+    classDef actorStyle fill:#f3e5f5
+    classDef externalStyle fill:#e8f5e8
+    classDef streamStyle fill:#fff8e1
+    
+    class WEB,MOB,API clientStyle
+    class CTRL,SSE,WS springStyle
+    class MAIN,USER,TOPIC,WORKER,THROTTLE,PERSIST,ROUTER,STREAM actorStyle
+    class KAFKA,PG,REDIS externalStyle
+    class PEKKO_STREAMS,REACTOR,FLOW streamStyle
+```
 
 ## 프로젝트 목적
 
@@ -19,49 +101,120 @@ AgenticCoding/Projects는 여기서 구성된 프롬프트에의해 생성된 �
 프롬프트를 참고해 다양한 지침을 생성한후 다양한 액터시스템을 구현에 도전할수 있습니다.
 샘플코드의 생성순서는 난이도에 따른 학습순서와 무관하게 작성되고 있으나~ CRUD가 일반적으로 잘하지 못하는 영역의 구현을 시도하고 있습니다.
 
-### 검증된 프롬프트 목록
+### 검증된 프롬프트 목록 (학습 순서별)
 
-현재상위 경로에서 수행
+현재 상위 경로에서 수행 - 난이도별 학습 경로
 
-- [SSE-PUSH 시스템](./Prompt/00_SSE-PUSH-SYSTEM.md) - AgenticCoding/Prompt/00_SSE-PUSH-SYSTEM.md 지침을 수행해
-- [액터 동시성 처리](./Prompt/01_ACTOR_CONCURRENCY.md) - AgenticCoding/Prompt/01_ACTOR_CONCURRENCY.md 지침을 수행해
-- [LLM 토큰 제어](./Prompt/02_LLM_THROTTLE.md) - AgenticCoding/Prompt/02_LLM_THROTTLE.md 지침을 수행해
-- [액터라우팅](./Prompt/03_ACTOR_ROUTER.md) - AgenticCoding/Prompt/03_ACTOR_ROUTER.md 지침을 수행해
-- [액터 스트림](./Prompt/04_ACTOR_STREAM.md) - AgenticCoding/Prompt/04_ACTOR_STREAM.md 지침을 수행해
-- [액터 모델을 이용한 다양한 기능 구현](./Prompt/05_ACTOR_THROTTLE.md) - AgenticCoding/Prompt/05_ACTOR_THROTTLE.md 지침을 수행해
-- [Kafka 커넥터](./Prompt/06_CONNECTOR_KAFKA.md) - AgenticCoding/Prompt/06_CONNECTOR_KAFKA.md 지침을 수행해
-- [액터영속성](./Prompt/07_PERSIST_DURABLE.md) - AgenticCoding/Prompt/PERSIST_DURABLE.md 지침을 수행해
+| 순번 | 프롬프트 | 난이도 | 핵심 학습 목표 |
+|------|----------|--------|---------------|
+| **00** | [SSE-PUSH 시스템](./Prompt/00_SSE-PUSH-SYSTEM.md) | ⭐⭐ | Spring WebFlux + Actor 기본 패턴 |
+| **01** | [액터 동시성 처리](./Prompt/01_ACTOR_CONCURRENCY.md) | ⭐ | Tell/Ask 패턴과 동시성 모델 비교 |
+| **02** | [LLM 토큰 제어](./Prompt/02_LLM_THROTTLE.md) | ⭐⭐⭐ | 백프레셔와 Pekko Streams 활용 |
+| **03** | [액터 라우터](./Prompt/03_ACTOR_ROUTER.md) | ⭐⭐ | 6가지 라우팅 전략과 확장성 |
+| **04** | [액터 스트림](./Prompt/04_ACTOR_STREAM.md) | ⭐⭐⭐ | 다양한 스트림 처리 기술 비교 |
+| **05** | [액터 스로틀](./Prompt/05_ACTOR_THROTTLE.md) | ⭐⭐⭐ | 고급 백프레셔와 메시지 큐 관리 |
+| **06** | [Kafka 커넥터](./Prompt/06_CONNECTOR_KAFKA.md) | ⭐⭐⭐⭐ | 외부 시스템 통합과 이벤트 처리 |
+| **07** | [액터 영속성](./Prompt/07_PERSIST_DURABLE.md) | ⭐⭐⭐⭐ | 영속성과 상태 복원, 자원 관리 |
 
 > **참고**: 액터모델은 자바(+코틀린)가 지원하는 다양한 동시성프로그래밍을 이해하며 이를 이용하기때문에, 동시성 처리 기본기는 중요합니다.
 
 ## 생성된 프로젝트
 
-클루드에의해 코딩없이 생성된 프로젝트는 [Projects 디렉토리](./Projects/)에서 확인할수 있습니다.
+Claude Code에 의해 코딩없이 생성된 프로젝트는 [Projects 디렉토리](./Projects/)에서 확인할 수 있습니다.
 
-### 프로젝트 목록 by AI생성
+### 프로젝트 목록 by AI생성 (학습 순서별)
 
-- [SSE Push System](./Projects/SSE-PUSH-SYSTEM/)
-  - Server-Sent Events를 활용한 실시간 푸시 시스템으로 액터모델과 연결되어 더 강력한 시스템으로 업그레이드 할수 있습니다.
-- [Actor Concurrency](./Projects/ACTOR_CONCURRENCY/) 
-  - 액터 모델 기반 동시성 처리 예제로, JVM이 지원하는 동시성 프로그래밍을 함께 학습합니다.
-- [LLM Throttle](./Projects/LLM-THROTTLE/)
-  - LLM 호출 제약조절을 자동으로 할수 있는 액터장치로, 설계된 액터를 통해 다양한 형태의 메일박스(큐)를 구현할수 있습니다. 
-- [Actor Router](./Projects/ACTOR_ROUTER/)
-  - 액터로 작동되는 모델은, 다양한 라우터 전략을 적용할수 있습니다.
-  - 액터라우팅을 통해 다양한 액터를 라우팅하는 방법을 학습합니다.
-- [Actor Stream](./Projects/ACTOR_STREAM/) 
-  - 액터 스트림을 통해 리액티브 스트림을 이해하고, 다양한 스트림 처리기능을 구현합니다.
-  - PekkoStream, Java Streams API, WebFlux, Kotlin Coroutines 등 다양한 스트림 처리 기술을 비교합니다.
-- [Actor Throttle](./Projects/ACTOR_THROTTLE/)
-  - 액터를 이용한 LLM 호출 제약장치로, Backpressure를 적용한 액터모델을 구현합니다.
-  - LLM 호출을 제어하고, 토큰 측정기를 가상 클래스로 구현하여 다양한 상황에서의 토큰 사용량을 관리합니다.
-- [KafkaConnector](./Projects/CONNECTOR_KAFKA/)
-  - Kafka를 액터모델과 연결해 Stream커넥트를 활용해 구현합니다. 
-  - 샘플은 Kafka이며  RabbitMQ, Redis 등도 Pekko Streams, Reactive Streams컨셉을 이용해 연결가능합니다.
-- [PERSIST_DURABLE.md](./Prompt/PERSIST_DURABLE.md)  
-  - 액터모델을 이용한 영속성 및 내구성 있는 상태 관리 구현
-  - Akka Persistence를 활용해 액터의 상태를 영속화하고, 장애 복구 시에도 상태를 유지할 수 있도록 합니다.
+#### 00. [SSE Push System](./Projects/SSE-PUSH-SYSTEM/) ⭐⭐
+**핵심 기술**: Spring WebFlux + Apache Pekko Actor + SSE  
+**학습 목표**: 실시간 푸시 시스템과 액터 모델의 기본 통합 패턴
+- Server-Sent Events를 통한 실시간 이벤트 스트리밍
+- TopicManagerActor와 UserEventActor를 활용한 토픽 기반 pub/sub
+- 이벤트 히스토리 관리 (토픽당 100개 이벤트 저장)
+- Ask/Tell 패턴을 활용한 비동기 메시지 처리
+- **성과**: 실시간 통신 + 액터 모델의 기초 이해
 
+#### 01. [Actor Concurrency](./Projects/ACTOR_CONCURRENCY/) ⭐
+**핵심 기술**: Apache Pekko + 동시성 처리 패턴  
+**학습 목표**: Tell/Ask 패턴과 3가지 동시성 모델 비교 학습
+- HelloActor를 통한 기본 액터 패턴 학습
+- Tell 패턴(fire-and-forget) vs Ask 패턴(request-response)
+- CompletableFuture, WebFlux Mono, Kotlin Coroutines 동시성 비교
+- TestProbe를 활용한 액터 테스트 방법론
+- **성과**: 액터 모델과 JVM 동시성 프로그래밍의 융합
+
+#### 02. [LLM Throttle](./Projects/LLM-THROTTLE/) ⭐⭐⭐
+**핵심 기술**: Pekko Streams + 백프레셔 + 토큰 기반 스로틀링  
+**학습 목표**: 고급 백프레셔 메커니즘과 자동 속도 조절
+- 기본 버전: 수동 백프레셔와 단계별 지연 처리
+- 향상된 버전: Pekko Streams 기반 자동 속도 조절
+- 슬라이딩 윈도우를 통한 토큰 사용량 추적
+- 실패 요청 관리와 재시도 메커니즘
+- **성과**: 백프레셔와 리액티브 스트림의 실전 활용
+
+#### 03. [Actor Router](./Projects/ACTOR_ROUTER/) ⭐⭐
+**핵심 기술**: 액터 라우팅 전략 + 동적 스케일링  
+**학습 목표**: 6가지 라우팅 전략과 로컬→클러스터 확장 설계
+- Round Robin, Random, Least Loaded, Consistent Hash 등
+- Priority Based, Broadcast 라우팅 구현
+- 동적 워커 스케일링(Scale In/Out)
+- 로컬 시스템에서 클러스터로의 무중단 전환 가능 구조
+- **성과**: 분산 시스템 설계와 확장성 패턴 이해
+
+#### 04. [Actor Stream](./Projects/ACTOR_STREAM/) ⭐⭐⭐
+**핵심 기술**: 스트림 처리 기술 비교 + StreamProcessorActor  
+**학습 목표**: 4가지 스트림 처리 기술의 특성과 성능 비교
+- Pekko Streams: 액터 기반 스트림 처리
+- Java Streams API: 함수형 스트림 처리
+- WebFlux: 리액티브 스트림 처리
+- Kotlin Coroutines: 코루틴 기반 비동기 처리
+- **성과**: 스트림 처리 기술들의 장단점과 적용 시나리오 파악
+
+#### 05. [Actor Throttle](./Projects/ACTOR_THROTTLE/) ⭐⭐⭐
+**핵심 기술**: 고급 스로틀링 + ThrottleManagerActor  
+**학습 목표**: 복합적인 백프레셔 전략과 메시지 큐 관리
+- ThrottleActor와 ThrottleManagerActor의 계층적 구조
+- 다단계 백프레셔 적용과 메시지 스태싱
+- 용량 기반 동적 지연 조절
+- 실시간 메트릭 수집과 모니터링
+- **성과**: 복잡한 시스템에서의 부하 제어와 안정성 확보
+
+#### 06. [Kafka Connector](./Projects/CONNECTOR_KAFKA/) ⭐⭐⭐⭐
+**핵심 기술**: Kafka + Pekko Streams + Actor 통합  
+**학습 목표**: 외부 시스템과의 안정적인 이벤트 처리 통합
+- EventProducer: Kafka로의 고성능 이벤트 전송
+- EventConsumerActor: 액터 기반 이벤트 상태 관리
+- KafkaConsumerConnector: Kafka-Actor 연결 계층
+- Kill Switch를 통한 우아한 종료 처리
+- **성과**: 대규모 이벤트 스트리밍과 액터 모델의 실전 결합
+
+#### 07. [Persist Durable](./Projects/PERSIST_DURABLE/) ⭐⭐⭐⭐
+**핵심 기술**: Pekko Durable State + PostgreSQL + 자원 관리  
+**학습 목표**: 영속성과 상태 복원, 효율적인 자원 관리
+- UserStateActor: 사용자별 상태 영속화
+- 30분 비활성화 시 자동 셧다운과 상태 복원
+- PostgreSQL R2DBC를 통한 비동기 영속성
+- mallId-userId 조합의 고유 식별자 설계
+- **비교 분석**: Pekko Persist vs Kafka KTable vs Apache Flink
+- **성과**: 상태 관리의 영속성과 효율성 양립
+
+## 액터 모델의 CQRS 처리 장점
+
+전통적인 CRUD 패턴을 넘어서 CQRS(Command Query Responsibility Segregation) 패턴을 구현할 때 액터 모델이 제공하는 핵심 가치:
+
+### 🎯 명령(Command) 처리의 우수성
+- **상태 캡슐화**: 각 액터가 독립적인 상태를 관리하여 동시성 이슈 원천 차단
+- **메시지 기반 처리**: 비동기 명령 처리로 높은 처리량과 응답성 확보
+- **백프레셔 적용**: 시스템 부하에 따른 자동 속도 조절로 안정성 보장
+
+### 📊 조회(Query) 처리의 효율성
+- **읽기 모델 최적화**: 액터별 상태 관리로 빠른 조회 성능
+- **이벤트 히스토리**: 시간별 상태 변화 추적 가능
+- **분산 캐싱**: 액터 레벨에서의 인메모리 상태 관리
+
+### 🔄 전체적인 시스템 이점
+- **수평 확장**: 액터 단위로 독립적인 확장 가능
+- **장애 격리**: 하나의 액터 실패가 전체 시스템에 미치는 영향 최소화
+- **복잡한 워크플로우**: 상태 기반 처리로 복잡한 비즈니스 로직 단순화
 
 ## 액터모델(리액티브 스트림) 학습을 위한 다양한 프롬프트
 
@@ -82,56 +235,3 @@ AgenticCoding/Projects는 여기서 구성된 프롬프트에의해 생성된 �
 - https://wiki.webnori.com/display/AKKA
 
 
-### Cluade Code for WSL (Windows Subsystem for Linux) Installation Guide
-
-윈도우 개발자를 위한 CluadeCode 사용을 위한 WSL에서 인스톨
-
-```
-To properly install Node.js packages in WSL that detect your environment as Linux rather than Windows:
-
-1. Install NVM (Node Version Manager) in WSL: wslforcluade.sh 동일파일있음 - 스크립트 안정성 여부확인후 수행권장
-    
-    ```bash
-    sudo apt-get install curl
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
-    ```
-    
-2. Close and reopen your terminal, or run:
-    
-    ```bash
-    source ~/.bashrc
-    ```
-    
-3. Install Node.js using NVM:
-    
-    ```bash
-    nvm install node
-    ```
-    
-4. Verify Node.js is installed in the Linux environment:
-    
-    ```bash
-    which npm
-    ```
-    
-    Should show: `/home/username/.nvm/versions/node/vX.X.X/bin/npm`
-    
-5. Now install packages through this Node.js installation:
-    
-    ```bash
-    npm config set os linux
-    npm install -g @anthropic-ai/claude-code
-    ```
-    
-- **git 설치**
-    
-    ```bash
-    sudo apt install git
-    ```
-    
-- **ripgrep 설치**
-    
-    ```bash
-    sudo apt install ripgrep
-    ```
-```
