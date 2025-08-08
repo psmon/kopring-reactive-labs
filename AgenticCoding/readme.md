@@ -116,6 +116,7 @@ AgenticCoding/Projects는 여기서 구성된 프롬프트에의해 생성된 �
 | **06** | [Kafka 커넥터](./Prompt/06_CONNECTOR_KAFKA.md) | ⭐⭐⭐⭐ | 외부 시스템 통합과 이벤트 처리 |
 | **07** | [액터 영속성](./Prompt/07_PERSIST_DURABLE.md) | ⭐⭐⭐⭐ | 영속성과 상태 복원, 자원 관리 |
 | **08** | [Pekko HTTP 서버](./Prompt/08_PEKKO_HTTP.md) | ⭐⭐⭐⭐ | Pekko HTTP 서버와 순수 액터 시스템 |
+| **09** | [분산 영속성 클러스터](./Prompt/09_PERSIST_DURABLE_CLUSTER.md) | ⭐⭐⭐⭐⭐ | Cluster Sharding과 Durable State 통합 |
 
 > **참고**: 액터모델은 자바(+코틀린)가 지원하는 다양한 동시성프로그래밍을 이해하며 이를 이용하기때문에, 동시성 처리 기본기는 중요합니다.
 
@@ -208,6 +209,18 @@ Claude Code에 의해 코딩없이 생성된 프로젝트는 [Projects 디렉토
 - 메모리 사용량 ~50MB, 시작 시간 ~1초의 경량 서버
 - **비교 분석**: Pekko HTTP vs Spring Boot WebFlux 장단점
 - **성과**: 경량 마이크로서비스와 고성능 스트리밍 서버 구축 능력
+
+#### 09. [Persist Durable Cluster](./Projects/PERSIST_DURABLE_CLUSTER/) ⭐⭐⭐⭐⭐
+**핵심 기술**: Pekko Cluster Sharding + Durable State + PostgreSQL  
+**학습 목표**: 분산 환경에서의 상태 관리와 클러스터 샤딩 마스터
+- Cluster Sharding을 통한 엔티티 자동 분산 관리
+- mallId-userId 기반 해시 샤딩 전략
+- R2DBC PostgreSQL을 통한 비동기 영속성
+- 노드 장애 시 자동 엔티티 마이그레이션
+- 30분 비활성화 시 자동 Passivation
+- 100개 샤드로 균등 분산 및 자동 리밸런싱
+- **비교 분석**: Pekko Cluster vs Kafka KTable vs Apache Flink
+- **성과**: 엔터프라이즈급 분산 상태 관리 시스템 구축 능력
 
 ## 액터 모델의 CQRS 처리 장점
 

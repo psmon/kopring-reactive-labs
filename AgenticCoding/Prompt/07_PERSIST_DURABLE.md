@@ -13,7 +13,7 @@
 
 
 ## 로컬환경 추가지침
-- Kafka는 DockerCompose를 이용해 구성합니다.
+- PostGres는 DockerCompose를 이용해 구성합니다.
 - 인프라를 구동후~ 유닛테스트를 수행해 , 빌드오류및 유닛테스트를 검증합니다.
 
 
