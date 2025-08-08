@@ -115,6 +115,7 @@ AgenticCoding/Projects는 여기서 구성된 프롬프트에의해 생성된 �
 | **05** | [액터 스로틀](./Prompt/05_ACTOR_THROTTLE.md) | ⭐⭐⭐ | 고급 백프레셔와 메시지 큐 관리 |
 | **06** | [Kafka 커넥터](./Prompt/06_CONNECTOR_KAFKA.md) | ⭐⭐⭐⭐ | 외부 시스템 통합과 이벤트 처리 |
 | **07** | [액터 영속성](./Prompt/07_PERSIST_DURABLE.md) | ⭐⭐⭐⭐ | 영속성과 상태 복원, 자원 관리 |
+| **08** | [Pekko HTTP 서버](./Prompt/08_PEKKO_HTTP.md) | ⭐⭐⭐⭐ | Pekko HTTP 서버와 순수 액터 시스템 |
 
 > **참고**: 액터모델은 자바(+코틀린)가 지원하는 다양한 동시성프로그래밍을 이해하며 이를 이용하기때문에, 동시성 처리 기본기는 중요합니다.
 
@@ -196,6 +197,17 @@ Claude Code에 의해 코딩없이 생성된 프로젝트는 [Projects 디렉토
 - mallId-userId 조합의 고유 식별자 설계
 - **비교 분석**: Pekko Persist vs Kafka KTable vs Apache Flink
 - **성과**: 상태 관리의 영속성과 효율성 양립
+
+#### 08. [Pekko HTTP](./Projects/PEKKO_HTTP/) ⭐⭐⭐⭐
+**핵심 기술**: Pekko HTTP + WebSocket + Swagger UI + 순수 액터 시스템  
+**학습 목표**: Spring Boot 없이 경량 HTTP 서버 구축과 액터 시스템 전면 활용
+- Spring Boot 의존성 없는 순수 Pekko HTTP 서버 구현
+- WebSocket과 SSE를 통한 실시간 양방향 통신
+- Swagger UI 통합으로 대화형 API 문서화
+- HelloActor, EventStreamActor, WebSocketActor 등 다양한 액터 패턴
+- 메모리 사용량 ~50MB, 시작 시간 ~1초의 경량 서버
+- **비교 분석**: Pekko HTTP vs Spring Boot WebFlux 장단점
+- **성과**: 경량 마이크로서비스와 고성능 스트리밍 서버 구축 능력
 
 ## 액터 모델의 CQRS 처리 장점
 

@@ -36,34 +36,38 @@ class StaticRoute(private val system: ActorSystem<*>) {
     }
     
     private fun serveHtmlFile(resourcePath: String): Route {
-        return complete {
-            val inputStream: InputStream? = javaClass.getResourceAsStream(resourcePath)
-            if (inputStream != null) {
-                val content = inputStream.bufferedReader().use { it.readText() }
+        val inputStream: InputStream? = javaClass.getResourceAsStream(resourcePath)
+        return if (inputStream != null) {
+            val content = inputStream.bufferedReader().use { it.readText() }
+            complete(
                 HttpResponse.create()
                     .withStatus(StatusCodes.OK)
                     .withEntity(HttpEntities.create(ContentTypes.TEXT_HTML_UTF8, content))
-            } else {
+            )
+        } else {
+            complete(
                 HttpResponse.create()
                     .withStatus(StatusCodes.NOT_FOUND)
                     .withEntity("File not found: $resourcePath")
-            }
+            )
         }
     }
     
     private fun serveStaticFile(resourcePath: String, contentType: ContentType): Route {
-        return complete {
-            val inputStream: InputStream? = javaClass.getResourceAsStream(resourcePath)
-            if (inputStream != null) {
-                val bytes = inputStream.readBytes()
+        val inputStream: InputStream? = javaClass.getResourceAsStream(resourcePath)
+        return if (inputStream != null) {
+            val bytes = inputStream.readBytes()
+            complete(
                 HttpResponse.create()
                     .withStatus(StatusCodes.OK)
                     .withEntity(HttpEntities.create(contentType, bytes))
-            } else {
+            )
+        } else {
+            complete(
                 HttpResponse.create()
                     .withStatus(StatusCodes.NOT_FOUND)
                     .withEntity("File not found: $resourcePath")
-            }
+            )
         }
     }
 }
