@@ -113,6 +113,7 @@ Execute from the current parent path - Learning path by difficulty level
 | **07** | [Actor Persistence](./Prompt/07_PERSIST_DURABLE.md) | ⭐⭐⭐⭐ | Persistence, State Recovery, and Resource Management |
 | **08** | [Pekko HTTP Server](./Prompt/08_PEKKO_HTTP.md) | ⭐⭐⭐⭐ | Pekko HTTP Server and Pure Actor System |
 | **09** | [Distributed Persistence Cluster](./Prompt/09_PERSIST_DURABLE_CLUSTER.md) | ⭐⭐⭐⭐⭐ | Cluster Sharding and Durable State Integration |
+| **10** | [Persist EventSource](./Prompt/10_PERSIST_EVENTSOURCE.md) | ⭐⭐⭐⭐⭐ | Event Sourcing with complete audit trail and state reconstruction |
 
 > **Note**: Since the Actor Model understands and utilizes various concurrent programming features supported by Java (+Kotlin), fundamental concurrent processing skills are important.
 
@@ -217,6 +218,19 @@ Projects generated without coding by Claude Code can be found in the [Projects d
 - Even distribution across 100 shards and automatic rebalancing
 - **Comparative Analysis**: Pekko Cluster vs Kafka KTable vs Apache Flink
 - **Achievement**: Ability to build enterprise-grade distributed state management systems
+
+#### 10. [Persist EventSource](./Projects/PERSIST_EVENTSOURCE/) ⭐⭐⭐⭐⭐
+**Core Technologies**: Pekko Event Sourcing + PostgreSQL + Snapshots + Audit Trail  
+**Learning Objectives**: Event sourcing pattern, complete audit capabilities, and CQRS implementation
+- Virtual wallet with DepositAdded and WithdrawalMade events
+- Complete audit trail and traceability for all transactions
+- Event replay capability for state reconstruction at any point in time
+- Snapshot optimization for performance improvement
+- Security features: account freeze/unfreeze, daily withdrawal limits
+- Transaction validation and rejection tracking
+- Performance benchmarks demonstrating advantages over traditional CRUD
+- **Comparative Analysis**: Event Sourcing vs CRUD vs Durable State vs State Store Plugin
+- **Achievement**: Building enterprise-grade event-sourced systems with complete audit capabilities
 
 ## Advantages of Actor Model for CQRS Processing
 

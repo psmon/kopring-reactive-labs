@@ -117,6 +117,7 @@ AgenticCoding/Projects는 여기서 구성된 프롬프트에의해 생성된 �
 | **07** | [액터 영속성](./Prompt/07_PERSIST_DURABLE.md) | ⭐⭐⭐⭐ | 영속성과 상태 복원, 자원 관리 |
 | **08** | [Pekko HTTP 서버](./Prompt/08_PEKKO_HTTP.md) | ⭐⭐⭐⭐ | Pekko HTTP 서버와 순수 액터 시스템 |
 | **09** | [분산 영속성 클러스터](./Prompt/09_PERSIST_DURABLE_CLUSTER.md) | ⭐⭐⭐⭐⭐ | Cluster Sharding과 Durable State 통합 |
+| **10** | [이벤트 소싱 영속성](./Prompt/10_PERSIST_EVENTSOURCE.md) | ⭐⭐⭐⭐⭐ | 완전한 감사 추적과 상태 재구성을 갖춘 이벤트 소싱 |
 
 > **참고**: 액터모델은 자바(+코틀린)가 지원하는 다양한 동시성프로그래밍을 이해하며 이를 이용하기때문에, 동시성 처리 기본기는 중요합니다.
 
@@ -221,6 +222,19 @@ Claude Code에 의해 코딩없이 생성된 프로젝트는 [Projects 디렉토
 - 100개 샤드로 균등 분산 및 자동 리밸런싱
 - **비교 분석**: Pekko Cluster vs Kafka KTable vs Apache Flink
 - **성과**: 엔터프라이즈급 분산 상태 관리 시스템 구축 능력
+
+#### 10. [Persist EventSource](./Projects/PERSIST_EVENTSOURCE/) ⭐⭐⭐⭐⭐
+**핵심 기술**: Pekko Event Sourcing + PostgreSQL + 스냅샷 + 감사 추적  
+**학습 목표**: 이벤트 소싱 패턴, 완전한 감사 기능, CQRS 구현
+- 입금(DepositAdded)과 출금(WithdrawalMade) 이벤트를 갖춘 가상 지갑
+- 모든 거래에 대한 완전한 감사 추적과 추적성
+- 특정 시점의 상태 재구성을 위한 이벤트 재생 기능
+- 성능 향상을 위한 스냅샷 최적화
+- 보안 기능: 계정 동결/해제, 일일 출금 한도
+- 거래 검증 및 거부 추적
+- 전통적인 CRUD 대비 장점을 보여주는 성능 벤치마크
+- **비교 분석**: 이벤트 소싱 vs CRUD vs Durable State vs State Store Plugin
+- **성과**: 완전한 감사 기능을 갖춘 엔터프라이즈급 이벤트 소싱 시스템 구축
 
 ## 액터 모델의 CQRS 처리 장점
 
