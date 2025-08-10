@@ -1,43 +1,43 @@
 # Actor Concurrency with Kotlin
 
-이 프로젝트는 Apache Pekko(Akka의 오픈소스 포크)를 사용하여 액터 모델의 동시성 처리를 보여주는 Kotlin 기반 모듈입니다.
+This project is a Kotlin-based module that demonstrates concurrent processing with the Actor Model using Apache Pekko (an open-source fork of Akka).
 
-## 목차
-- [액터 모델이란?](#액터-모델이란)
-- [Tell vs Ask 패턴](#tell-vs-ask-패턴)
-- [동시성 모델 비교](#동시성-모델-비교)
-- [프로젝트 구조](#프로젝트-구조)
-- [코드 예제](#코드-예제)
-- [테스트 실행](#테스트-실행)
+## Table of Contents
+- [What is the Actor Model?](#what-is-the-actor-model)
+- [Tell vs Ask Patterns](#tell-vs-ask-patterns)
+- [Concurrency Model Comparison](#concurrency-model-comparison)
+- [Project Structure](#project-structure)
+- [Code Examples](#code-examples)
+- [Running Tests](#running-tests)
 
-## 액터 모델이란?
+## What is the Actor Model?
 
-액터 모델은 동시성 프로그래밍을 위한 수학적 모델로, 다음과 같은 특징을 가집니다:
+The Actor Model is a mathematical model for concurrent programming with the following characteristics:
 
-1. **액터**: 독립적인 계산 단위로, 자체 상태와 동작을 캡슐화합니다
-2. **메시지 기반 통신**: 액터들은 오직 메시지를 통해서만 통신합니다
-3. **비동기성**: 메시지는 비동기적으로 전송되고 처리됩니다
-4. **격리성**: 각 액터는 독립적으로 실행되며 상태를 공유하지 않습니다
+1. **Actors**: Independent units of computation that encapsulate their own state and behavior
+2. **Message-based Communication**: Actors communicate only through messages
+3. **Asynchrony**: Messages are sent and processed asynchronously
+4. **Isolation**: Each actor runs independently and doesn't share state
 
-### 액터의 3가지 기본 동작
-- **메시지 수신**: 다른 액터로부터 메시지를 받습니다
-- **상태 변경**: 내부 상태를 업데이트할 수 있습니다
-- **새 액터 생성**: 필요시 자식 액터를 생성할 수 있습니다
+### Three Basic Operations of an Actor
+- **Receive Messages**: Receive messages from other actors
+- **Change State**: Can update internal state
+- **Create New Actors**: Can create child actors when needed
 
-## Tell vs Ask 패턴
+## Tell vs Ask Patterns
 
-### Tell 패턴 (Fire-and-Forget)
+### Tell Pattern (Fire-and-Forget)
 ```kotlin
-// 메시지를 보내고 응답을 기다리지 않음
+// Send a message without waiting for a response
 actor.tell(Hello("Hello"))
 ```
-- **장점**: 비동기적이고 논블로킹
-- **단점**: 응답을 받을 수 없음
-- **사용 시기**: 단방향 통신이나 이벤트 알림
+- **Pros**: Asynchronous and non-blocking
+- **Cons**: Cannot receive responses
+- **When to Use**: One-way communication or event notifications
 
-### Ask 패턴 (Request-Response)
+### Ask Pattern (Request-Response)
 ```kotlin
-// 메시지를 보내고 응답을 기다림
+// Send a message and wait for a response
 val response = AskPattern.ask(
     actor,
     { replyTo -> Hello("Hello", replyTo) },
@@ -45,29 +45,29 @@ val response = AskPattern.ask(
     scheduler
 )
 ```
-- **장점**: 응답을 받을 수 있음
-- **단점**: 타임아웃 설정 필요, 약간의 오버헤드
-- **사용 시기**: 응답이 필요한 요청-응답 패턴
+- **Pros**: Can receive responses
+- **Cons**: Requires timeout settings, slight overhead
+- **When to Use**: Request-response patterns requiring answers
 
-## 동시성 모델 비교
+## Concurrency Model Comparison
 
-### 1. CompletableFuture (Java 표준)
+### 1. CompletableFuture (Java Standard)
 ```kotlin
 val future = AskPattern.ask(...).toCompletableFuture()
-val result = future.get() // 블로킹
+val result = future.get() // blocking
 ```
-- **특징**: Java 8+ 표준 비동기 API
-- **장점**: 널리 사용됨, 다양한 조합 연산 지원
-- **단점**: 체이닝시 가독성 떨어짐
+- **Features**: Java 8+ standard async API
+- **Pros**: Widely used, supports various composition operations
+- **Cons**: Poor readability when chaining
 
 ### 2. Reactor (WebFlux)
 ```kotlin
 val mono = AskPattern.ask(...).toCompletableFuture().toMono()
-val result = mono.block() // 블로킹
+val result = mono.block() // blocking
 ```
-- **특징**: 리액티브 스트림 구현체
-- **장점**: 백프레셔, 풍부한 연산자
-- **단점**: 학습 곡선이 있음
+- **Features**: Reactive Streams implementation
+- **Pros**: Backpressure, rich operators
+- **Cons**: Learning curve
 
 ### 3. Kotlin Coroutines
 ```kotlin
@@ -75,33 +75,33 @@ suspend fun getResponse() {
     val result = AskPattern.ask(...).toCompletableFuture().await()
 }
 ```
-- **특징**: Kotlin 네이티브 비동기 프로그래밍
-- **장점**: 직관적인 코드, 경량 스레드
-- **단점**: Kotlin 전용
+- **Features**: Kotlin native asynchronous programming
+- **Pros**: Intuitive code, lightweight threads
+- **Cons**: Kotlin-specific
 
-## 프로젝트 구조
+## Project Structure
 
 ```
 ACTOR_CONCURRENCY/
-├── build.gradle.kts           # 빌드 설정
+├── build.gradle.kts           # Build configuration
 ├── src/
 │   ├── main/kotlin/
 │   │   └── com/example/actorconcurrency/
 │   │       ├── actor/
-│   │       │   ├── HelloActor.kt         # 메인 액터
-│   │       │   └── TestReceiverActor.kt  # 테스트용 수신 액터
+│   │       │   ├── HelloActor.kt         # Main actor
+│   │       │   └── TestReceiverActor.kt  # Test receiver actor
 │   │       └── model/
-│   │           └── Commands.kt           # 메시지 정의
+│   │           └── Commands.kt           # Message definitions
 │   └── test/kotlin/
 │       └── com/example/actorconcurrency/
 │           └── actor/
-│               └── HelloActorConcurrencyTest.kt  # 테스트
+│               └── HelloActorConcurrencyTest.kt  # Tests
 └── README.md
 ```
 
-## 코드 예제
+## Code Examples
 
-### 1. 액터 정의
+### 1. Actor Definition
 ```kotlin
 class HelloActor(
     context: ActorContext<HelloCommand>,
@@ -123,22 +123,22 @@ class HelloActor(
 }
 ```
 
-### 2. Tell 패턴 사용
+### 2. Using Tell Pattern
 ```kotlin
 @Test
 fun `test HelloActor with Tell pattern`() {
     val probe = testKit.createTestProbe<HelloCommand>()
     val actor = testKit.spawn(HelloActor.create(probe.ref))
     
-    // 메시지 전송 (응답 기다리지 않음)
+    // Send message (don't wait for response)
     actor.tell(Hello("Hello"))
     
-    // 프로브로 응답 확인
+    // Verify response with probe
     probe.expectMessage(HelloResponse("Kotlin"))
 }
 ```
 
-### 3. Ask 패턴 - 세 가지 방식
+### 3. Ask Pattern - Three Approaches
 
 #### CompletableFuture
 ```kotlin
@@ -165,42 +165,42 @@ suspend fun askActor() {
 }
 ```
 
-## 테스트 실행
+## Running Tests
 
-### 테스트 실행 방법
+### How to Run Tests
 ```bash
-# 모든 테스트 실행
+# Run all tests
 ./gradlew test
 
-# 특정 테스트만 실행
+# Run specific test
 ./gradlew test --tests HelloActorConcurrencyTest
 ```
 
-### 테스트 내용
-1. **Tell 패턴 테스트**: 메시지 전송 후 TestProbe로 확인
-2. **Ask 패턴 - CompletableFuture**: Java 표준 비동기 API 사용
-3. **Ask 패턴 - WebFlux**: Reactor Mono 사용
-4. **Ask 패턴 - Coroutines**: Kotlin 코루틴 사용
-5. **동시 요청 테스트**: 여러 동시성 모델을 함께 사용
+### Test Coverage
+1. **Tell Pattern Test**: Send message and verify with TestProbe
+2. **Ask Pattern - CompletableFuture**: Using Java standard async API
+3. **Ask Pattern - WebFlux**: Using Reactor Mono
+4. **Ask Pattern - Coroutines**: Using Kotlin coroutines
+5. **Concurrent Request Test**: Using multiple concurrency models together
 
-## 핵심 개념 정리
+## Key Concepts Summary
 
-### 액터 모델의 장점
-- **스레드 안전성**: 공유 상태가 없어 동기화 문제 없음
-- **확장성**: 액터는 독립적이므로 쉽게 확장 가능
-- **장애 격리**: 한 액터의 실패가 다른 액터에 영향 없음
-- **위치 투명성**: 액터가 로컬이든 원격이든 동일하게 통신
+### Advantages of the Actor Model
+- **Thread Safety**: No shared state means no synchronization issues
+- **Scalability**: Actors are independent and easily scalable
+- **Fault Isolation**: One actor's failure doesn't affect others
+- **Location Transparency**: Actors communicate the same way whether local or remote
 
-### 실제 사용 사례
-- **게임 서버**: 각 플레이어나 NPC를 액터로 모델링
-- **IoT 시스템**: 각 디바이스를 액터로 표현
-- **마이크로서비스**: 서비스 간 통신 패턴
-- **실시간 처리**: 이벤트 기반 시스템
+### Real-World Use Cases
+- **Game Servers**: Model each player or NPC as an actor
+- **IoT Systems**: Represent each device as an actor
+- **Microservices**: Inter-service communication patterns
+- **Real-time Processing**: Event-driven systems
 
-## 추가 학습 자료
-- [Apache Pekko 공식 문서](https://pekko.apache.org/)
-- [Kotlin Coroutines 가이드](https://kotlinlang.org/docs/coroutines-guide.html)
-- [Project Reactor 문서](https://projectreactor.io/docs)
+## Additional Learning Resources
+- [Apache Pekko Official Documentation](https://pekko.apache.org/)
+- [Kotlin Coroutines Guide](https://kotlinlang.org/docs/coroutines-guide.html)
+- [Project Reactor Documentation](https://projectreactor.io/docs)
 
-## 라이선스
-이 프로젝트는 교육 목적으로 작성되었습니다.
+## License
+This project was created for educational purposes.

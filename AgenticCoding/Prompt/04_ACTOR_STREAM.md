@@ -14,11 +14,14 @@
 - PekkStream의 Working With Graph특성을 잘 살려~ 코드를 간결하게 만들고, Buffer andWorking With rate 도 적용해 Stream 조절가능한 Stream이 되게할것...
 - 동일한 컨셉으로 PekkoStream없이 Java Streams API, WebFlux, Kotlin Coroutines 을 활용한 버전도 구현할것 어느것이 더 간결하게 구현이되고 강력한가 비교하기위한 목적입니다.
 
-
 ## 유닛테스트 수행및 부가지침
 - 코드 완성후, 완성된 코드 유닛테스트 시도합니다.
 - 유닛테스트 코드가 완성되면 readme.md에 코드컨셉및 듀토리얼을 초보자를 위해 쉽게 설명합니다.
 - Coroutines 비동기수행 테스트가 필요하면 runTest 사용할것
+
+## 다국어 작성 지침 지원
+- README.md 는 영문으로 작성
+- README-kr.md 은 한글로작성(영문 작성버전을 한글로 번역)
 
 ## 참고코드 사전 지식
 

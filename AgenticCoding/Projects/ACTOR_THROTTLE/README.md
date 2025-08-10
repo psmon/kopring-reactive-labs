@@ -1,14 +1,14 @@
 # ACTOR_THROTTLE - Actor Model Based TPS Throttling Tutorial
 
-## 개요
+## Overview
 
-ACTOR_THROTTLE 프로젝트는 Apache Pekko (Akka fork) 액터 모델을 사용하여 TPS(Transactions Per Second) 제한을 구현하는 튜토리얼입니다. 이 프로젝트는 `mallID` 단위로 작업을 관리하며, 각 mall별로 독립적인 TPS 제한을 적용합니다.
+The ACTOR_THROTTLE project is a tutorial that implements TPS (Transactions Per Second) throttling using the Apache Pekko (Akka fork) actor model. This project manages work on a per-`mallID` basis and applies independent TPS limits for each mall.
 
-## 핵심 개념
+## Core Concepts
 
-### 1. Throttling 메커니즘
+### 1. Throttling Mechanism
 
-이 프로젝트의 핵심은 Pekko Streams의 `throttle` 연산자를 사용하여 스레드 블로킹 없이 TPS를 제어하는 것입니다:
+The core of this project is using Pekko Streams' `throttle` operator to control TPS without thread blocking:
 
 ```kotlin
 Source.queue<ThrottledWork>(100, OverflowStrategy.backpressure())
@@ -19,77 +19,77 @@ Source.queue<ThrottledWork>(100, OverflowStrategy.backpressure())
     .run(materializer)
 ```
 
-이 접근 방식의 장점:
-- **논블로킹**: Thread.sleep() 없이 비동기적으로 처리
-- **백프레셔**: 큐가 가득 차면 자동으로 처리 속도 조절
-- **정확한 TPS 제어**: 설정된 TPS를 정확하게 준수
+Advantages of this approach:
+- **Non-blocking**: Asynchronous processing without Thread.sleep()
+- **Backpressure**: Automatic processing rate control when queue is full
+- **Precise TPS Control**: Accurately adheres to the configured TPS
 
-### 2. 액터 구조
+### 2. Actor Structure
 
 #### ThrottleActor
-- 개별 mall의 작업을 처리하는 액터
-- mall별로 독립적인 TPS 제한 적용
-- 작업 큐와 처리 통계 관리
+- Actor that processes work for individual malls
+- Applies independent TPS limits per mall
+- Manages work queue and processing statistics
 
 #### ThrottleManagerActor
-- 여러 mall의 ThrottleActor를 관리
-- mall별 액터 생성 및 라우팅
-- 통합 통계 수집
+- Manages multiple mall ThrottleActors
+- Creates actors per mall and handles routing
+- Collects integrated statistics
 
 #### StatsCollectorActor
-- 여러 mall의 통계를 비동기적으로 수집
-- 일시적으로 생성되어 작업 완료 후 종료
+- Asynchronously collects statistics from multiple malls
+- Created temporarily and terminates after completing work
 
-## 주요 기능
+## Key Features
 
-### 1. Mall별 독립적인 TPS 제어
+### 1. Independent TPS Control per Mall
 
-각 mall은 독립적인 ThrottleActor를 가지며, 서로 영향을 주지 않습니다:
+Each mall has its own independent ThrottleActor and doesn't affect others:
 
 ```kotlin
-// mall1은 TPS 1로 제한
-// mall2도 독립적으로 TPS 1로 제한
+// mall1 is limited to TPS 1
+// mall2 is also independently limited to TPS 1
 managerActor.tell(ProcessMallWork("mall1", "work1", replyTo))
 managerActor.tell(ProcessMallWork("mall2", "work2", replyTo))
 ```
 
-### 2. 실시간 통계 조회
+### 2. Real-time Statistics Query
 
-작업 처리 중에도 실시간으로 통계를 조회할 수 있습니다:
+Statistics can be queried in real-time even during work processing:
 
 ```kotlin
-// 특정 mall 통계
+// Statistics for specific mall
 managerActor.tell(GetMallStats("mall1", statsProbe.ref))
 
-// 모든 mall 통계
+// Statistics for all malls
 managerActor.tell(GetAllStats(allStatsProbe.ref))
 ```
 
-### 3. FIFO 작업 처리
+### 3. FIFO Work Processing
 
-작업은 요청된 순서대로(FIFO) 처리되며, TPS 제한에 따라 순차적으로 실행됩니다.
+Work is processed in the order requested (FIFO) and executed sequentially according to TPS limits.
 
-## 사용 예제
+## Usage Examples
 
-### 기본 사용법
+### Basic Usage
 
 ```kotlin
-// ThrottleManagerActor 생성
+// Create ThrottleManagerActor
 val managerActor = actorSystem.spawn(ThrottleManagerActor.create(), "throttle-manager")
 
-// 작업 요청
+// Request work
 val resultProbe = testKit.createTestProbe<WorkResult>()
 managerActor.tell(ProcessMallWork("mall1", "work-123", resultProbe.ref))
 
-// 결과 수신
+// Receive result
 val result = resultProbe.receiveMessage()
 println("Work ${result.workId} processed at ${result.timestamp}")
 ```
 
-### 통계 조회
+### Statistics Query
 
 ```kotlin
-// 특정 mall 통계 조회
+// Query statistics for specific mall
 val statsProbe = testKit.createTestProbe<ThrottleStats>()
 managerActor.tell(GetMallStats("mall1", statsProbe.ref))
 val stats = statsProbe.receiveMessage()
@@ -100,35 +100,35 @@ println("Queued: ${stats.queuedCount}")
 println("TPS: ${stats.tps}")
 ```
 
-## 테스트 실행
+## Running Tests
 
 ```bash
 ./gradlew test
 ```
 
-## 주요 테스트 케이스
+## Key Test Cases
 
-### 1. TPS 제한 검증
-- 5개의 작업을 TPS=1로 처리하면 최소 4초 소요
+### 1. TPS Limit Verification
+- Processing 5 tasks with TPS=1 should take at least 4 seconds
 
-### 2. Mall별 독립성 검증
-- 여러 mall이 동시에 작업을 처리해도 각각 독립적인 TPS 유지
+### 2. Mall Independence Verification
+- Multiple malls can process work simultaneously while maintaining independent TPS
 
-### 3. 통계 정확성 검증
-- 처리된 작업 수, 대기 중인 작업 수, 실제 TPS 확인
+### 3. Statistics Accuracy Verification
+- Verify processed task count, queued task count, and actual TPS
 
-## 학습 포인트
+## Learning Points
 
-1. **액터 모델의 동시성 처리**: 각 mall별로 독립적인 액터를 생성하여 동시성 처리
-2. **Reactive Streams 활용**: Pekko Streams를 사용한 비동기 처리
-3. **백프레셔 처리**: OverflowStrategy.backpressure()를 통한 자동 흐름 제어
-4. **테스트 가능한 설계**: TestProbe를 활용한 액터 동작 검증
+1. **Concurrency Handling with Actor Model**: Creating independent actors for each mall to handle concurrency
+2. **Reactive Streams Utilization**: Asynchronous processing using Pekko Streams
+3. **Backpressure Handling**: Automatic flow control through OverflowStrategy.backpressure()
+4. **Testable Design**: Actor behavior verification using TestProbe
 
-## 확장 가능성
+## Extensibility
 
-- **동적 TPS 조정**: 런타임에 TPS 제한 변경
-- **우선순위 큐**: 작업별 우선순위 부여
-- **Circuit Breaker**: 장애 시 자동 차단
-- **메트릭 수집**: Prometheus 등과 연동하여 모니터링
+- **Dynamic TPS Adjustment**: Change TPS limits at runtime
+- **Priority Queue**: Assign priorities to different tasks
+- **Circuit Breaker**: Automatic failure isolation
+- **Metrics Collection**: Integration with monitoring systems like Prometheus
 
-이 프로젝트는 액터 모델을 사용한 TPS 제어의 기본 개념을 보여주며, 실제 프로덕션 환경에서 확장하여 사용할 수 있는 패턴을 제공합니다.
+This project demonstrates the basic concepts of TPS control using the actor model and provides patterns that can be extended for use in production environments.

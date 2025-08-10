@@ -20,6 +20,10 @@ Pekko HTTP를 활용해  Pekko의 액터모델을 이용한 응답 API를 만들
 - pekko-http를 통해 pekko 의 액터모델을 전면채탤할때  장단점도 설명합니다. spring boot를 사용하지 않고 pekko-http를 이용해 구현하는 이유와 장점을 설명해주세요
 - 유닛테스트 코드가 작성되고~ 검증되면 readme.md에 이 프로젝트의 코드컨셉및 듀토리얼을 초보자를 위해 쉽게 설명합니다. 필요하면 mermaid이용 다이어그램 설명도 함께합니다.
 
+## 다국어 작성 지침 지원
+- README.md 는 영문으로 작성
+- README-kr.md 은 한글로작성(영문 작성버전을 한글로 번역)
+
 # Pekko HTTP 참고
 Spring Boot를 사용하지 않고 다음 Pekko HTTP를 이용해 웹HTTP 서비스를 구현합니다.  
 Spring 종속성은 사용하지말고 다음을 참고 라이트웨이 하게 구성합니다.

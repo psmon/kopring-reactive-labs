@@ -1,17 +1,17 @@
-# PERSIST_DURABLE - Pekko Durable State 액터 시스템
+# PERSIST_DURABLE - Pekko Durable State Actor System
 
-## 개요
+## Overview
 
-이 프로젝트는 Apache Pekko의 Durable State 기능을 활용하여 사용자 상태를 영속적으로 관리하는 액터 시스템을 구현합니다. 사용자의 마지막 로그인 시간, 장바구니 사용 시간, 최근 본 상품, 마케팅 수신 동의 여부 등의 상태를 관리하며, 30분 동안 비활성 상태가 지속되면 자동으로 셧다운되고 필요 시 상태를 복원하는 기능을 제공합니다.
+This project implements an actor system that persistently manages user state using Apache Pekko's Durable State functionality. It manages states such as user's last login time, cart usage time, recently viewed products, and marketing consent preferences. The system provides automatic shutdown after 30 minutes of inactivity and state restoration capabilities when needed.
 
-## 주요 기능
+## Key Features
 
-- **영속적 상태 관리**: PostgreSQL을 통한 상태 영속성 보장
-- **자동 셧다운**: 30분 비활성 시 리소스 절약을 위한 자동 종료
-- **상태 복원**: 액터 재시작 시 이전 상태 자동 복원
-- **고유 식별자**: mallId-userId 조합으로 고유한 사용자 식별
+- **Persistent State Management**: State persistence guaranteed through PostgreSQL
+- **Automatic Shutdown**: Automatic termination after 30 minutes of inactivity for resource conservation
+- **State Restoration**: Automatic restoration of previous state when actor restarts
+- **Unique Identification**: Unique user identification through mallId-userId combination
 
-## 아키텍처
+## Architecture
 
 ```mermaid
 graph TD
@@ -42,9 +42,9 @@ graph TD
     Q -->|Yes| B
 ```
 
-## 구현 세부사항
+## Implementation Details
 
-### 1. UserState 모델
+### 1. UserState Model
 
 ```kotlin
 data class UserState(
@@ -52,24 +52,24 @@ data class UserState(
     val userId: String,
     val lastLogin: LocalDateTime?,
     val lastCartUsedTime: LocalDateTime?,
-    val recentProducts: List<String> = emptyList(),  // 최대 3개 유지
+    val recentProducts: List<String> = emptyList(),  // Keep max 3 items
     val marketingOptIn: Boolean = false,
     val lastEventTime: LocalDateTime = LocalDateTime.now()
 )
 ```
 
-### 2. 명령(Command) 패턴
+### 2. Command Pattern
 
-- `UserLogin`: 로그인 이벤트 처리
-- `UseCart`: 장바구니 사용 이벤트
-- `ViewProduct`: 상품 조회 이벤트
-- `SetMarketingOptIn`: 마케팅 수신 동의 설정
-- `GetUserState`: 현재 상태 조회
-- `CheckInactivity`: 비활성 상태 체크 (내부 타이머)
+- `UserLogin`: Handle login events
+- `UseCart`: Cart usage events
+- `ViewProduct`: Product view events
+- `SetMarketingOptIn`: Set marketing consent preferences
+- `GetUserState`: Query current state
+- `CheckInactivity`: Check inactivity status (internal timer)
 
-### 3. 영속성 구성
+### 3. Persistence Configuration
 
-Pekko R2DBC를 사용하여 PostgreSQL에 상태를 저장:
+Store state in PostgreSQL using Pekko R2DBC:
 
 ```conf
 pekko.persistence {
@@ -90,144 +90,144 @@ pekko.persistence {
 }
 ```
 
-## 시작하기
+## Getting Started
 
-### 1. PostgreSQL 시작
+### 1. Start PostgreSQL
 
 ```bash
 docker-compose up -d
 ```
 
-### 2. 프로젝트 빌드
+### 2. Build Project
 
 ```bash
 ./gradlew build
 ```
 
-### 3. 테스트 실행
+### 3. Run Tests
 
 ```bash
 ./gradlew test
 ```
 
-## 사용 예제
+## Usage Example
 
 ```kotlin
-// 액터 생성
+// Create actor
 val mallId = "mall001"
 val userId = "user001"
 val actor = system.spawn(UserStateActor.create(mallId, userId))
 
-// 로그인 이벤트
+// Login event
 actor.tell(UserLogin(replyTo))
 
-// 상품 조회
+// View product
 actor.tell(ViewProduct("product123", replyTo))
 
-// 장바구니 사용
+// Use cart
 actor.tell(UseCart(replyTo))
 
-// 마케팅 수신 동의
+// Set marketing consent
 actor.tell(SetMarketingOptIn(true, replyTo))
 
-// 상태 조회
+// Query state
 actor.tell(GetUserState(stateReplyTo))
 ```
 
-## Pekko Persist vs Kafka KTable vs Apache Flink 비교
+## Comparison: Pekko Persist vs Kafka KTable vs Apache Flink
 
 ### Pekko Persist (Durable State)
 
-**장점:**
-- ✅ 액터 모델과 완벽한 통합
-- ✅ 상태와 행동의 캡슐화
-- ✅ 자동 상태 복원
-- ✅ 타이머 기반 자동 리소스 관리
-- ✅ 강한 일관성 보장
-- ✅ 복잡한 비즈니스 로직에 적합
+**Advantages:**
+- ✅ Perfect integration with Actor model
+- ✅ Encapsulation of state and behavior
+- ✅ Automatic state restoration
+- ✅ Timer-based automatic resource management
+- ✅ Strong consistency guarantee
+- ✅ Suitable for complex business logic
 
-**단점:**
-- ❌ 단일 JVM 프로세스 내 제한적 확장성
-- ❌ 스트림 처리에는 부적합
-- ❌ 대용량 데이터 처리 시 메모리 제약
+**Disadvantages:**
+- ❌ Limited scalability within single JVM process
+- ❌ Not suitable for stream processing
+- ❌ Memory constraints for high-volume data processing
 
-**사용 사례:**
-- 사용자 세션 관리
-- 게임 상태 관리
-- 워크플로우 엔진
-- 복잡한 상태 기계
+**Use Cases:**
+- User session management
+- Game state management
+- Workflow engines
+- Complex state machines
 
 ### Kafka KTable
 
-**장점:**
-- ✅ 분산 스트림 처리에 최적화
-- ✅ 높은 처리량과 확장성
-- ✅ Kafka 생태계와의 완벽한 통합
-- ✅ 체인지 로그 기반 상태 관리
-- ✅ 자동 파티셔닝과 리밸런싱
+**Advantages:**
+- ✅ Optimized for distributed stream processing
+- ✅ High throughput and scalability
+- ✅ Perfect integration with Kafka ecosystem
+- ✅ Change log-based state management
+- ✅ Automatic partitioning and rebalancing
 
-**단점:**
-- ❌ 복잡한 비즈니스 로직 구현 어려움
-- ❌ 타이머 기반 작업 처리 제한적
-- ❌ 개별 엔티티별 세밀한 제어 어려움
-- ❌ Kafka 인프라 의존성
+**Disadvantages:**
+- ❌ Difficult to implement complex business logic
+- ❌ Limited timer-based task processing
+- ❌ Difficult fine-grained control per individual entity
+- ❌ Kafka infrastructure dependency
 
-**사용 사례:**
-- 실시간 분석 및 집계
-- 이벤트 소싱
+**Use Cases:**
+- Real-time analytics and aggregation
+- Event sourcing
 - CDC (Change Data Capture)
-- 대규모 스트림 조인
+- Large-scale stream joins
 
 ### Apache Flink
 
-**장점:**
-- ✅ 진정한 스트림 처리 (이벤트 시간 기반)
-- ✅ 복잡한 CEP (Complex Event Processing)
-- ✅ 정확히 한 번(exactly-once) 처리 보장
-- ✅ 대규모 상태 관리 (RocksDB 백엔드)
-- ✅ 배치와 스트림 통합 처리
+**Advantages:**
+- ✅ True stream processing (event time-based)
+- ✅ Complex CEP (Complex Event Processing)
+- ✅ Exactly-once processing guarantee
+- ✅ Large-scale state management (RocksDB backend)
+- ✅ Unified batch and stream processing
 
-**단점:**
-- ❌ 높은 운영 복잡도
-- ❌ 리소스 집약적
-- ❌ 러닝 커브가 가파름
-- ❌ 단순한 상태 관리에는 과도함
+**Disadvantages:**
+- ❌ High operational complexity
+- ❌ Resource intensive
+- ❌ Steep learning curve
+- ❌ Excessive for simple state management
 
-**사용 사례:**
-- 실시간 이상 탐지
-- 복잡한 이벤트 패턴 매칭
-- 대규모 ETL 파이프라인
-- 실시간 ML 추론
+**Use Cases:**
+- Real-time anomaly detection
+- Complex event pattern matching
+- Large-scale ETL pipelines
+- Real-time ML inference
 
-## 선택 가이드
+## Selection Guide
 
-| 요구사항 | Pekko Persist | Kafka KTable | Apache Flink |
-|---------|--------------|--------------|--------------|
-| 개별 엔티티 상태 관리 | ⭐⭐⭐ | ⭐ | ⭐⭐ |
-| 스트림 처리 | ⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
-| 복잡한 비즈니스 로직 | ⭐⭐⭐ | ⭐⭐ | ⭐⭐ |
-| 확장성 | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
-| 운영 복잡도 | 낮음 | 중간 | 높음 |
-| 리소스 효율성 | ⭐⭐⭐ | ⭐⭐ | ⭐ |
-| 타이머/스케줄링 | ⭐⭐⭐ | ⭐ | ⭐⭐ |
+| Requirements | Pekko Persist | Kafka KTable | Apache Flink |
+|-------------|--------------|--------------|--------------|
+| Individual Entity State Management | ⭐⭐⭐ | ⭐ | ⭐⭐ |
+| Stream Processing | ⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
+| Complex Business Logic | ⭐⭐⭐ | ⭐⭐ | ⭐⭐ |
+| Scalability | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
+| Operational Complexity | Low | Medium | High |
+| Resource Efficiency | ⭐⭐⭐ | ⭐⭐ | ⭐ |
+| Timer/Scheduling | ⭐⭐⭐ | ⭐ | ⭐⭐ |
 
-## 결론
+## Conclusion
 
-**Pekko Persist**는 다음과 같은 경우에 최적의 선택입니다:
-- 개별 엔티티(사용자, 세션, 게임 등)의 상태를 관리해야 할 때
-- 복잡한 비즈니스 로직과 상태 전환이 필요할 때
-- 자동 리소스 관리(타이머 기반 셧다운 등)가 필요할 때
-- 중간 규모의 시스템에서 강한 일관성이 중요할 때
+**Pekko Persist** is the optimal choice when:
+- You need to manage state of individual entities (users, sessions, games, etc.)
+- Complex business logic and state transitions are required
+- Automatic resource management (timer-based shutdown, etc.) is needed
+- Strong consistency is important in medium-scale systems
 
-**Kafka KTable**은 대규모 스트림 데이터의 상태를 관리하고 실시간 집계가 필요할 때 적합하며, **Apache Flink**는 복잡한 이벤트 처리와 대규모 상태 관리가 동시에 필요한 경우에 적합합니다.
+**Kafka KTable** is suitable when you need to manage state of large-scale stream data and require real-time aggregation, while **Apache Flink** is appropriate when both complex event processing and large-scale state management are simultaneously required.
 
-이 프로젝트에서 구현한 사용자 상태 관리 시스템은 Pekko의 강점을 잘 활용한 예시로, 개별 사용자의 상태를 효율적으로 관리하면서도 리소스를 절약하는 실용적인 솔루션을 제공합니다.
+The user state management system implemented in this project is a good example that leverages Pekko's strengths, providing a practical solution that efficiently manages individual user states while conserving resources.
 
-## 라이선스
+## License
 
 MIT License
 
-## 참고 자료
+## References
 
 - [Apache Pekko Documentation](https://pekko.apache.org/)
 - [Pekko Persistence R2DBC](https://pekko.apache.org/docs/pekko-persistence-r2dbc/current/)

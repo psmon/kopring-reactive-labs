@@ -1,100 +1,100 @@
 # LLM Throttle System
 
-LLM API 호출을 위한 토큰 기반 속도 제한(Rate Limiting) 시스템입니다. Apache Pekko Actor를 사용하여 구현되었으며, 백프레셔(Backpressure) 메커니즘을 통해 안정적인 API 사용량 관리를 제공합니다.
+A token-based rate limiting system for LLM API calls. Built with Apache Pekko Actors, it provides stable API usage management through backpressure mechanisms.
 
-## 두 가지 구현 버전
+## Two Implementation Versions
 
-### 1. LLMThrottleActor (기본 버전)
-- 전통적인 액터 기반 접근 방식
-- 수동 백프레셔 및 지연 처리
-- 간단하고 직관적인 구조
+### 1. LLMThrottleActor (Basic Version)
+- Traditional actor-based approach
+- Manual backpressure and delay handling
+- Simple and intuitive structure
 
-### 2. LLMStreamThrottleActor (향상된 버전)
-- **Pekko Streams** 기반 자동 속도 조절
-- 내장 throttle 메커니즘 활용
-- 비동기 스트림 처리 최적화
+### 2. LLMStreamThrottleActor (Enhanced Version)
+- **Pekko Streams** based automatic rate control
+- Built-in throttle mechanism utilization
+- Asynchronous stream processing optimization
 
-## 주요 기능
+## Key Features
 
-- **토큰 기반 속도 제한**: 분당 토큰 사용량 제한 (기본값: 10,000 토큰/분)
-- **점진적 백프레셔**: 용량에 따른 단계적 지연 처리
-- **실패 요청 관리**: 제한 초과 요청의 재시도 큐 관리
-- **슬라이딩 윈도우**: 60초 슬라이딩 윈도우를 통한 정확한 사용량 추적
-- **자동 속도 조절**: (StreamThrottleActor) 토큰 사용량에 따른 동적 처리율 조절
+- **Token-based Rate Limiting**: Token usage limit per minute (default: 10,000 tokens/min)
+- **Progressive Backpressure**: Gradual delay processing based on capacity
+- **Failed Request Management**: Retry queue management for requests exceeding limits
+- **Sliding Window**: Accurate usage tracking through 60-second sliding window
+- **Automatic Rate Control**: (StreamThrottleActor) Dynamic processing rate adjustment based on token usage
 
-## 아키텍처
+## Architecture
 
-### 핵심 컴포넌트
+### Core Components
 
-#### 1. LLMThrottleActor (기본 버전)
-메인 액터로, 다음과 같은 책임을 가집니다:
-- 토큰 사용량 추적 및 관리
-- 용량 기반 요청 처리 결정
-- 백프레셔 적용
-- 실패한 요청 관리
+#### 1. LLMThrottleActor (Basic Version)
+Main actor with the following responsibilities:
+- Token usage tracking and management
+- Capacity-based request processing decisions
+- Backpressure application
+- Failed request management
 
-#### 2. LLMStreamThrottleActor (향상된 버전)
-Pekko Streams를 활용한 고성능 액터로, 다음과 같은 특징을 제공합니다:
-- **자동 속도 조절**: 토큰 사용량에 따른 동적 처리율 조절
-- **스트림 기반 처리**: 비동기 스트림으로 높은 처리량 제공
-- **내장 백프레셔**: Pekko Streams의 내장 백프레셔 메커니즘 활용
-- **큐 관리**: 자동 오버플로우 처리 및 버퍼링
+#### 2. LLMStreamThrottleActor (Enhanced Version)
+High-performance actor utilizing Pekko Streams with the following features:
+- **Automatic Rate Control**: Dynamic processing rate adjustment based on token usage
+- **Stream-based Processing**: High throughput through asynchronous streams
+- **Built-in Backpressure**: Utilization of Pekko Streams' built-in backpressure mechanism
+- **Queue Management**: Automatic overflow handling and buffering
 
 #### 3. TokenCalculator
-텍스트를 토큰으로 변환하는 인터페이스입니다:
+Interface for converting text to tokens:
 ```kotlin
 interface TokenCalculator {
     fun calculateTokens(text: String): Int
 }
 ```
 
-MockTokenCalculator는 `문자 수 + 랜덤(0~500)` 공식을 사용합니다.
+MockTokenCalculator uses the formula `character count + random(0~500)`.
 
-#### 4. 명령/응답 모델
-- `ProcessLLMRequest`: LLM 처리 요청
-- `LLMResponse`: 성공적인 처리 응답
-- `LLMThrottled`: 지연 처리 응답
-- `LLMFailed`: 실패한 요청 응답
+#### 4. Command/Response Models
+- `ProcessLLMRequest`: LLM processing request
+- `LLMResponse`: Successful processing response
+- `LLMThrottled`: Delayed processing response
+- `LLMFailed`: Failed request response
 
-### 백프레셔 전략
+### Backpressure Strategies
 
-#### 기본 버전 (LLMThrottleActor)
-시스템은 현재 용량에 따라 점진적으로 지연을 적용합니다:
+#### Basic Version (LLMThrottleActor)
+The system applies gradual delays based on current capacity:
 
-| 용량 사용률 | 지연 시간 | 동작 |
-|------------|----------|------|
-| < 70% | 없음 | 즉시 처리 |
-| 70-80% | 100ms | 약간의 지연 |
-| 80-90% | 300ms | 중간 지연 |
-| 90-95% | 1,000ms | 높은 지연 |
-| > 95% | 2,000ms | 최대 지연 |
-| > 100% | - | 실패 큐로 이동 |
+| Capacity Usage | Delay Time | Action |
+|---------------|-----------|--------|
+| < 70% | None | Immediate processing |
+| 70-80% | 100ms | Slight delay |
+| 80-90% | 300ms | Medium delay |
+| 90-95% | 1,000ms | High delay |
+| > 95% | 2,000ms | Maximum delay |
+| > 100% | - | Move to failure queue |
 
-#### 향상된 버전 (LLMStreamThrottleActor)
-Pekko Streams의 동적 스로틀링을 활용합니다:
+#### Enhanced Version (LLMStreamThrottleActor)
+Utilizes Pekko Streams' dynamic throttling:
 
-| 용량 사용률 | 처리율 (req/sec) | 동작 |
-|------------|----------------|------|
-| < 70% | 10 | 최대 처리율 |
-| 70-80% | 8 | 약간 감소 |
-| 80-90% | 5 | 중간 감소 |
-| 90-95% | 3 | 큰 감소 |
-| > 95% | 1 | 최소 처리율 |
-| > 100% | - | 실패 큐로 이동 |
+| Capacity Usage | Processing Rate (req/sec) | Action |
+|---------------|-------------------------|--------|
+| < 70% | 10 | Maximum processing rate |
+| 70-80% | 8 | Slight reduction |
+| 80-90% | 5 | Medium reduction |
+| 90-95% | 3 | Large reduction |
+| > 95% | 1 | Minimum processing rate |
+| > 100% | - | Move to failure queue |
 
-## 사용 방법
+## Usage
 
-### 기본 사용
+### Basic Usage
 
-#### 1. 기본 버전 (LLMThrottleActor)
+#### 1. Basic Version (LLMThrottleActor)
 
 ```kotlin
-// Actor 시스템 생성
+// Create Actor system
 val system = ActorSystem.create<MainStageActorCommand>(
     MainStageActor.create(), "llm-system"
 )
 
-// LLMThrottleActor 생성
+// Create LLMThrottleActor
 val throttleActor = system.systemActorOf(
     LLMThrottleActor.create(
         tokenCalculator = MockTokenCalculator(),
@@ -104,15 +104,15 @@ val throttleActor = system.systemActorOf(
 )
 ```
 
-#### 2. 향상된 버전 (LLMStreamThrottleActor)
+#### 2. Enhanced Version (LLMStreamThrottleActor)
 
 ```kotlin
-// Actor 시스템 생성
+// Create Actor system
 val system = ActorSystem.create<MainStageActorCommand>(
     MainStageActor.create(), "llm-system"
 )
 
-// LLMStreamThrottleActor 생성 (Pekko Streams 기반)
+// Create LLMStreamThrottleActor (Pekko Streams based)
 val streamThrottleActor = system.systemActorOf(
     LLMStreamThrottleActor.create(
         tokenCalculator = MockTokenCalculator(),
@@ -123,12 +123,12 @@ val streamThrottleActor = system.systemActorOf(
 
 ```
 
-#### 요청 처리 (두 버전 모두 동일)
+#### Request Processing (Same for both versions)
 
 ```kotlin
-// 요청 처리
+// Request processing
 val response = AskPattern.ask(
-    throttleActor, // 또는 streamThrottleActor
+    throttleActor, // or streamThrottleActor
     { replyTo -> ProcessLLMRequest(
         requestId = UUID.randomUUID().toString(),
         content = "Process this text",
@@ -138,29 +138,29 @@ val response = AskPattern.ask(
     system.scheduler()
 ).toCompletableFuture().get()
 
-// 응답 처리
+// Response handling
 when (response) {
     is LLMResponse -> {
-        println("처리 완료: ${response.processedContent}")
-        println("사용 토큰: ${response.tokensUsed}")
+        println("Processing complete: ${response.processedContent}")
+        println("Tokens used: ${response.tokensUsed}")
     }
     is LLMThrottled -> {
-        println("지연 처리: ${response.delayMs}ms 대기")
-        println("현재 용량: ${response.currentCapacityPercent}%")
+        println("Delayed processing: wait ${response.delayMs}ms")
+        println("Current capacity: ${response.currentCapacityPercent}%")
     }
     is LLMFailed -> {
-        println("처리 실패: ${response.reason}")
+        println("Processing failed: ${response.reason}")
         if (response.canRetry) {
-            println("재시도 가능")
+            println("Retry available")
         }
     }
 }
 ```
 
-### 상태 확인
+### State Monitoring
 
 ```kotlin
-// 현재 스로틀 상태 조회
+// Query current throttle state
 val state = AskPattern.ask(
     throttleActor,
     { replyTo -> GetThrottleState(replyTo) },
@@ -168,15 +168,15 @@ val state = AskPattern.ask(
     system.scheduler()
 ).toCompletableFuture().get() as ThrottleState
 
-println("현재 토큰 사용량: ${state.currentTokensUsed}/${state.tokenLimit}")
-println("용량 사용률: ${state.capacityPercent}%")
-println("실패한 요청 수: ${state.failedRequestsCount}")
+println("Current token usage: ${state.currentTokensUsed}/${state.tokenLimit}")
+println("Capacity usage: ${state.capacityPercent}%")
+println("Failed requests: ${state.failedRequestsCount}")
 ```
 
-### 실패한 요청 관리
+### Failed Request Management
 
 ```kotlin
-// 실패한 요청 목록 조회
+// Query failed request list
 val failedList = AskPattern.ask(
     throttleActor,
     { replyTo -> GetFailedRequests(replyTo) },
@@ -185,136 +185,136 @@ val failedList = AskPattern.ask(
 ).toCompletableFuture().get() as FailedRequestsList
 
 failedList.requests.forEach { request ->
-    println("실패 요청 ID: ${request.requestId}")
-    println("실패 시간: ${Date(request.failedAt)}")
-    println("실패 이유: ${request.reason}")
+    println("Failed request ID: ${request.requestId}")
+    println("Failure time: ${Date(request.failedAt)}")
+    println("Failure reason: ${request.reason}")
 }
 
-// 실패한 요청 재시도
+// Retry failed requests
 throttleActor.tell(RetryFailedRequests)
 ```
 
-## 설정
+## Configuration
 
-### 커스텀 토큰 계산기
+### Custom Token Calculator
 
-실제 LLM API의 토큰 계산 방식에 맞춰 TokenCalculator를 구현할 수 있습니다:
+You can implement TokenCalculator to match actual LLM API token calculation methods:
 
 ```kotlin
 class OpenAITokenCalculator : TokenCalculator {
     override fun calculateTokens(text: String): Int {
-        // OpenAI의 tiktoken 라이브러리 로직
-        return text.length / 4 // 간단한 근사치
+        // OpenAI's tiktoken library logic
+        return text.length / 4 // Simple approximation
     }
 }
 ```
 
-### 토큰 제한 조정
+### Token Limit Adjustment
 
 ```kotlin
 val throttleActor = LLMThrottleActor.create(
     tokenCalculator = CustomTokenCalculator(),
-    tokenLimitPerMinute = 50_000 // 분당 50,000 토큰
+    tokenLimitPerMinute = 50_000 // 50,000 tokens per minute
 )
 ```
 
-## 내부 동작
+## Internal Operations
 
-### 슬라이딩 윈도우
+### Sliding Window
 
-두 버전 모두 60초 슬라이딩 윈도우를 사용하여 토큰 사용량을 추적합니다:
+Both versions use a 60-second sliding window to track token usage:
 
-1. 각 요청은 타임스탬프와 함께 토큰 윈도우에 저장됩니다
-2. 현재 시간 기준 60초 이내의 모든 토큰이 계산됩니다
-3. 5초마다 만료된 윈도우가 자동으로 정리됩니다
+1. Each request is stored in the token window with a timestamp
+2. All tokens within 60 seconds from the current time are calculated
+3. Expired windows are automatically cleaned up every 5 seconds
 
-### 상태 관리
+### State Management
 
-#### 기본 버전 (LLMThrottleActor)
-액터는 다음 상태를 관리합니다:
-- `tokenWindows`: 시간별 토큰 사용량 추적
-- `failedRequests`: 처리 실패한 요청 큐
-- `stashedRequests`: 지연 처리 대기 중인 요청
+#### Basic Version (LLMThrottleActor)
+The actor manages the following state:
+- `tokenWindows`: Time-based token usage tracking
+- `failedRequests`: Queue of failed processing requests
+- `stashedRequests`: Requests waiting for delayed processing
 
-#### 향상된 버전 (LLMStreamThrottleActor)
-스트림 기반 상태 관리:
-- `tokenWindows`: ConcurrentHashMap으로 thread-safe 관리
-- `failedRequests`: ConcurrentLinkedQueue로 비동기 처리
-- `requestQueue`: Pekko Streams SourceQueue로 버퍼링
+#### Enhanced Version (LLMStreamThrottleActor)
+Stream-based state management:
+- `tokenWindows`: Thread-safe management with ConcurrentHashMap
+- `failedRequests`: Asynchronous processing with ConcurrentLinkedQueue
+- `requestQueue`: Buffering with Pekko Streams SourceQueue
 
-### 동시성 처리
+### Concurrency Handling
 
-#### 기본 버전
-- Pekko Actor 모델의 단일 스레드 처리
-- 메시지 기반 통신으로 race condition 방지
-- 수동 백프레셔 메커니즘
+#### Basic Version
+- Single-threaded processing of Pekko Actor model
+- Race condition prevention through message-based communication
+- Manual backpressure mechanism
 
-#### 향상된 버전
-- Pekko Streams의 비동기 처리
-- 내장 백프레셔 및 overflow 전략
-- 동적 스로틀링으로 자동 부하 조절
-- ConcurrentHashMap을 통한 thread-safe 토큰 관리
+#### Enhanced Version
+- Asynchronous processing of Pekko Streams
+- Built-in backpressure and overflow strategies
+- Automatic load balancing through dynamic throttling
+- Thread-safe token management through ConcurrentHashMap
 
-## 테스트
+## Testing
 
-프로젝트는 각 구현에 대해 다음과 같은 테스트 시나리오를 포함합니다:
+The project includes the following test scenarios for each implementation:
 
-### 기본 버전 (LLMThrottleActorTest)
-1. **기본 처리 테스트**: 70% 미만 용량에서 즉시 처리
-2. **백프레셔 테스트**: 용량별 지연 시간 검증
-3. **용량 초과 테스트**: 실패 큐 동작 검증
-4. **슬라이딩 윈도우 테스트**: 시간 경과에 따른 토큰 만료
-5. **동시성 테스트**: 다중 요청 처리
+### Basic Version (LLMThrottleActorTest)
+1. **Basic Processing Test**: Immediate processing at under 70% capacity
+2. **Backpressure Test**: Verification of delay times by capacity
+3. **Capacity Overflow Test**: Verification of failure queue operation
+4. **Sliding Window Test**: Token expiration over time
+5. **Concurrency Test**: Multiple request processing
 
-### 향상된 버전 (LLMStreamThrottleActorTest)
-1. **스트림 처리 테스트**: 저용량에서 스트림 기반 처리
-2. **동적 스로틀링 테스트**: 용량에 따른 자동 속도 조절
-3. **큐 오버플로우 테스트**: 큐 용량 초과 시 graceful handling
-4. **용량 초과 테스트**: 실패 큐 동작 검증
-5. **재시도 테스트**: 실패한 요청 재처리
-6. **슬라이딩 윈도우 테스트**: 시간 경과에 따른 토큰 만료
+### Enhanced Version (LLMStreamThrottleActorTest)
+1. **Stream Processing Test**: Stream-based processing at low capacity
+2. **Dynamic Throttling Test**: Automatic rate adjustment by capacity
+3. **Queue Overflow Test**: Graceful handling when queue capacity is exceeded
+4. **Capacity Overflow Test**: Verification of failure queue operation
+5. **Retry Test**: Reprocessing of failed requests
+6. **Sliding Window Test**: Token expiration over time
 
-테스트 실행:
+Running tests:
 ```bash
 ./gradlew test
 ```
 
-## 성능 고려사항
+## Performance Considerations
 
-### 기본 버전 (LLMThrottleActor)
-1. **메모리 사용**: 토큰 윈도우는 메모리에 저장되므로, 장시간 운영 시 정기적인 정리가 중요합니다
-2. **타이머 정확도**: 5초 간격의 정리 타이머는 시스템 부하에 따라 지연될 수 있습니다
-3. **처리량**: 액터는 단일 스레드에서 실행되므로, 매우 높은 처리량이 필요한 경우 액터 라우팅 고려
+### Basic Version (LLMThrottleActor)
+1. **Memory Usage**: Token windows are stored in memory, so regular cleanup is important for long-term operation
+2. **Timer Accuracy**: The 5-second cleanup timer may be delayed depending on system load
+3. **Throughput**: Actors run in single threads, so consider actor routing for very high throughput requirements
 
-### 향상된 버전 (LLMStreamThrottleActor)
-1. **처리량**: Pekko Streams의 비동기 처리로 높은 처리량 제공
-2. **메모리 효율성**: ConcurrentHashMap 및 스트림 버퍼링으로 메모리 사용 최적화
-3. **백프레셔 성능**: 내장 백프레셔 메커니즘으로 시스템 안정성 향상
-4. **동적 조절**: 실시간 부하에 따른 자동 속도 조절로 최적 성능 유지
+### Enhanced Version (LLMStreamThrottleActor)
+1. **Throughput**: High throughput provided by Pekko Streams' asynchronous processing
+2. **Memory Efficiency**: Memory usage optimization through ConcurrentHashMap and stream buffering
+3. **Backpressure Performance**: System stability improvement through built-in backpressure mechanism
+4. **Dynamic Control**: Optimal performance maintenance through automatic rate adjustment based on real-time load
 
-### 비교 및 선택 가이드
+### Comparison and Selection Guide
 
-| 특성 | 기본 버전 | 향상된 버전 |
-|------|----------|------------|
-| 구현 복잡도 | 낮음 | 높음 |
-| 처리량 | 중간 | 높음 |
-| 메모리 사용 | 보통 | 효율적 |
-| 백프레셔 | 수동 | 자동 |
-| 디버깅 용이성 | 높음 | 중간 |
-| 운영 안정성 | 좋음 | 매우 좋음 |
+| Feature | Basic Version | Enhanced Version |
+|---------|-------------|-----------------|
+| Implementation Complexity | Low | High |
+| Throughput | Medium | High |
+| Memory Usage | Normal | Efficient |
+| Backpressure | Manual | Automatic |
+| Debugging Ease | High | Medium |
+| Operational Stability | Good | Very Good |
 
-**권장 사용 시나리오:**
-- **기본 버전**: 간단한 요구사항, 낮은 처리량, 디버깅 중요
-- **향상된 버전**: 높은 처리량, 복잡한 부하 패턴, 운영 안정성 중요
+**Recommended Usage Scenarios:**
+- **Basic Version**: Simple requirements, low throughput, debugging importance
+- **Enhanced Version**: High throughput, complex load patterns, operational stability importance
 
-## 향후 개선 사항
+## Future Improvements
 
-1. **지속성**: 재시작 시에도 토큰 사용량을 유지하기 위한 영속성 추가
-2. **분산 처리**: 클러스터 환경에서의 토큰 사용량 공유
-3. **동적 임계값**: 부하에 따른 동적 임계값 조정
-4. **메트릭 수집**: Prometheus/Grafana 연동을 위한 메트릭 노출
-5. **웹훅 지원**: 실패한 요청에 대한 웹훅 알림
+1. **Persistence**: Adding persistence to maintain token usage even after restart
+2. **Distributed Processing**: Token usage sharing in cluster environments
+3. **Dynamic Thresholds**: Dynamic threshold adjustment based on load
+4. **Metrics Collection**: Metrics exposure for Prometheus/Grafana integration
+5. **Webhook Support**: Webhook notifications for failed requests
 
-## 라이선스
+## License
 
-이 프로젝트는 교육 및 참고 목적으로 작성되었습니다.
+This project is written for educational and reference purposes.

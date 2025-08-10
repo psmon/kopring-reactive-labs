@@ -1,20 +1,20 @@
 # CONNECTOR_KAFKA - Kafka Connector with Actor Model
 
-## 개요
+## Overview
 
-이 프로젝트는 Apache Kafka와 Pekko Actor 모델을 결합한 이벤트 처리 시스템입니다. Kafka 프로듀서/컨슈머와 Actor 기반 상태 관리를 통해 안정적이고 확장 가능한 메시지 처리를 구현합니다.
+This project is an event processing system that combines Apache Kafka with the Pekko Actor model. It implements stable and scalable message processing through Kafka producer/consumer and Actor-based state management.
 
-## 주요 기능
+## Key Features
 
-- ✅ Kafka 프로듀서를 통한 이벤트 전송
-- ✅ Kafka 컨슈머와 Actor 모델 통합
-- ✅ 이벤트 상태 관리 (마지막 이벤트 저장)
-- ✅ 이벤트 카운트 추적
-- ✅ 배치 처리 지원
-- ✅ 메타데이터를 포함한 이벤트 전송
-- ✅ 높은 처리량 (TPS) 지원
+- ✅ Event transmission through Kafka producer
+- ✅ Integration of Kafka consumer with Actor model
+- ✅ Event state management (storing last event)
+- ✅ Event count tracking
+- ✅ Batch processing support
+- ✅ Event transmission with metadata
+- ✅ High throughput (TPS) support
 
-## 프로젝트 구조
+## Project Structure
 
 ```
 CONNECTOR_KAFKA/
@@ -22,22 +22,22 @@ CONNECTOR_KAFKA/
 │   ├── main/
 │   │   ├── kotlin/
 │   │   │   └── com/example/connectorkafka/
-│   │   │       ├── model/          # 이벤트 모델 및 직렬화
-│   │   │       ├── producer/       # Kafka 프로듀서
-│   │   │       ├── actor/          # 이벤트 처리 Actor
-│   │   │       └── connector/      # Kafka-Actor 연결
+│   │   │       ├── model/          # Event models and serialization
+│   │   │       ├── producer/       # Kafka producer
+│   │   │       ├── actor/          # Event processing Actor
+│   │   │       └── connector/      # Kafka-Actor connection
 │   │   └── resources/
-│   │       ├── application.conf    # Pekko/Kafka 설정
-│   │       └── logback.xml        # 로깅 설정
+│   │       ├── application.conf    # Pekko/Kafka configuration
+│   │       └── logback.xml        # Logging configuration
 │   └── test/
-│       └── kotlin/                 # 단위 및 통합 테스트
-├── docker-compose.yml              # Kafka 클러스터 설정
-└── build.gradle.kts               # Gradle 빌드 설정
+│       └── kotlin/                 # Unit and integration tests
+├── docker-compose.yml              # Kafka cluster setup
+└── build.gradle.kts               # Gradle build configuration
 ```
 
-## 핵심 구성 요소
+## Core Components
 
-### 1. KafkaEvent 모델
+### 1. KafkaEvent Model
 ```kotlin
 data class KafkaEvent(
     val eventType: String,
@@ -46,84 +46,84 @@ data class KafkaEvent(
     val timestamp: Long = System.currentTimeMillis()
 )
 ```
-이벤트의 기본 구조를 정의합니다. Jackson 직렬화를 사용하여 Kafka 메시지로 변환됩니다.
+Defines the basic structure of events. Uses Jackson serialization to convert to Kafka messages.
 
 ### 2. EventProducer
-Kafka로 이벤트를 전송하는 프로듀서입니다:
-- 단일 이벤트 전송
-- 배치 이벤트 전송
-- 메타데이터 포함 전송
-- 전송된 이벤트 카운트 추적
+Producer that sends events to Kafka:
+- Single event transmission
+- Batch event transmission
+- Transmission with metadata
+- Tracking transmitted event count
 
 ### 3. EventConsumerActor
-이벤트를 처리하고 상태를 관리하는 Actor입니다:
-- 이벤트 수신 및 처리
-- 마지막 이벤트 상태 유지
-- 처리된 이벤트 카운트 관리
-- 상태 초기화 기능
+Actor that processes events and manages state:
+- Event reception and processing
+- Maintaining last event state
+- Managing processed event count
+- State initialization functionality
 
 ### 4. KafkaConsumerConnector
-Kafka 컨슈머와 Actor를 연결하는 커넥터입니다:
-- Kafka 토픽에서 메시지 수신
-- Actor로 이벤트 전달
-- 오프셋 커밋 관리
-- Kill switch를 통한 우아한 종료
+Connector that links Kafka consumer with Actor:
+- Receiving messages from Kafka topics
+- Forwarding events to Actor
+- Managing offset commits
+- Graceful shutdown through Kill switch
 
-## 시작하기
+## Getting Started
 
-### 필수 요구사항
+### Prerequisites
 
-- JDK 17 이상
-- Docker 및 Docker Compose
-- Gradle 7.x 이상
+- JDK 17+
+- Docker and Docker Compose
+- Gradle 7.x+
 
-### 1. Kafka 클러스터 시작
+### 1. Start Kafka Cluster
 
 ```bash
-# Docker Compose로 Kafka 클러스터 시작
+# Start Kafka cluster with Docker Compose
 docker-compose up -d
 
-# 클러스터 상태 확인
+# Check cluster status
 docker-compose ps
 
-# Kafka UI 접속 (브라우저)
+# Access Kafka UI (browser)
 # http://localhost:8080
 ```
 
-### 2. 프로젝트 빌드
+### 2. Build Project
 
 ```bash
-# 프로젝트 디렉토리로 이동
+# Navigate to project directory
 cd AgenticCoding/Projects/CONNECTOR_KAFKA
 
-# Gradle 빌드
+# Gradle build
 ./gradlew build
 ```
 
-### 3. 테스트 실행
+### 3. Run Tests
 
 ```bash
-# 모든 테스트 실행
+# Run all tests
 ./gradlew test
 
-# 특정 테스트 클래스 실행
+# Run specific test classes
 ./gradlew test --tests EventProducerTest
 ./gradlew test --tests EventConsumerActorTest
 ./gradlew test --tests KafkaIntegrationTest
 ```
 
-## 사용 예제
+## Usage Examples
 
-### 프로듀서 사용 예제
+### Producer Usage Example
 
 ```kotlin
-// Actor 시스템 생성
+// Create Actor system
 val system = ActorTestKit.create("MySystem", config)
 
-// 프로듀서 초기화
+// Initialize producer
 val producer = EventProducer(system.system(), "test-topic1")
 
-// 단일 이벤트 전송
+// Send single event
 val event = KafkaEvent(
     eventType = "USER_ACTION",
     eventId = UUID.randomUUID().toString(),
@@ -134,7 +134,7 @@ producer.sendEvent(event).thenAccept { done ->
     println("Event sent successfully")
 }
 
-// 배치 이벤트 전송
+// Send batch events
 val events = (1..100).map { i ->
     KafkaEvent(
         eventType = "BATCH_EVENT",
@@ -148,51 +148,51 @@ producer.sendEvents(events).thenAccept { done ->
 }
 ```
 
-### 컨슈머 사용 예제
+### Consumer Usage Example
 
 ```kotlin
-// 컨슈머 커넥터 초기화
+// Initialize consumer connector
 val consumer = KafkaConsumerConnector(
     system.system(),
     topicName = "test-topic1",
     groupId = "my-consumer-group"
 )
 
-// 컨슈밍 시작
+// Start consuming
 val control = consumer.startConsuming()
 
-// Actor를 통한 상태 조회
+// Query state through Actor
 val actor = consumer.getConsumerActor()
 val probe = system.createTestProbe<EventResponse>()
 
-// 마지막 이벤트 조회
+// Query last event
 actor.tell(GetLastEvent(probe.ref))
 val lastEvent = probe.expectMessageClass(LastEventResponse::class.java)
 println("Last event: ${lastEvent.event?.eventString}")
 
-// 이벤트 카운트 조회
+// Query event count
 val countProbe = system.createTestProbe<EventCountResponse>()
 actor.tell(GetEventCount(countProbe.ref))
 val count = probe.expectMessageClass(EventCountResponse::class.java)
 println("Total events processed: ${count.count}")
 ```
 
-### Kill Switch를 사용한 우아한 종료
+### Graceful Shutdown with Kill Switch
 
 ```kotlin
-// Kill switch와 함께 시작
+// Start with kill switch
 val (killSwitch, future) = consumer.startConsumingWithKillSwitch()
 
-// 처리 로직...
+// Processing logic...
 
-// 우아한 종료
+// Graceful shutdown
 killSwitch.shutdown()
 future.toCompletableFuture().get(10, TimeUnit.SECONDS)
 ```
 
-## 설정 가이드
+## Configuration Guide
 
-### application.conf 주요 설정
+### Key application.conf Settings
 
 ```hocon
 kafka {
@@ -202,84 +202,84 @@ kafka {
 pekko.kafka {
   producer {
     kafka-clients {
-      acks = "all"              # 모든 복제본 확인
-      retries = 3               # 재시도 횟수
-      compression.type = "gzip" # 압축 타입
+      acks = "all"              # Acknowledge all replicas
+      retries = 3               # Number of retries
+      compression.type = "gzip" # Compression type
     }
   }
   
   consumer {
     kafka-clients {
-      auto.offset.reset = "earliest"  # 오프셋 리셋 정책
-      enable.auto.commit = false       # 수동 커밋
-      max.poll.records = 500          # 최대 폴링 레코드 수
+      auto.offset.reset = "earliest"  # Offset reset policy
+      enable.auto.commit = false       # Manual commit
+      max.poll.records = 500          # Maximum polling records
     }
   }
 }
 ```
 
-## 성능 및 테스트 결과
+## Performance and Test Results
 
-### 처리량 (TPS) 테스트
-- **프로듀서 TPS**: 평균 1000+ events/sec
-- **End-to-End TPS**: 평균 500+ events/sec
-- **테스트 환경**: 로컬 Docker Kafka 클러스터 (3 브로커)
+### Throughput (TPS) Tests
+- **Producer TPS**: Average 1000+ events/sec
+- **End-to-End TPS**: Average 500+ events/sec
+- **Test Environment**: Local Docker Kafka cluster (3 brokers)
 
-### 신뢰성 테스트
-- ✅ 이벤트 순서 보장
-- ✅ 정확한 이벤트 카운트 매칭
-- ✅ 상태 일관성 유지
-- ✅ 동시성 처리 검증
+### Reliability Tests
+- ✅ Event order guarantee
+- ✅ Accurate event count matching
+- ✅ State consistency maintenance
+- ✅ Concurrency processing verification
 
-## 아키텍처 개념
+## Architecture Concepts
 
-### Actor 모델의 장점
-1. **격리된 상태 관리**: 각 Actor가 독립적으로 상태 관리
-2. **메시지 기반 통신**: 비동기 메시지 전달로 느슨한 결합
-3. **오류 격리**: Actor 장애가 시스템 전체에 영향 없음
-4. **확장성**: Actor 인스턴스를 늘려 쉽게 확장
+### Advantages of Actor Model
+1. **Isolated State Management**: Each Actor manages state independently
+2. **Message-based Communication**: Loose coupling through asynchronous message passing
+3. **Error Isolation**: Actor failures don't affect the entire system
+4. **Scalability**: Easy scaling by increasing Actor instances
 
-### Kafka와 Actor 통합의 이점
-1. **백프레셔 제어**: Pekko Streams로 자동 백프레셔 관리
-2. **정확한 한 번 처리**: 오프셋 커밋과 Actor 상태 동기화
-3. **복원력**: 장애 시 자동 재연결 및 복구
-4. **모니터링**: Actor 시스템을 통한 세밀한 모니터링
+### Benefits of Kafka and Actor Integration
+1. **Backpressure Control**: Automatic backpressure management with Pekko Streams
+2. **Exactly-Once Processing**: Synchronization of offset commits and Actor state
+3. **Resilience**: Automatic reconnection and recovery during failures
+4. **Monitoring**: Fine-grained monitoring through Actor system
 
-## 트러블슈팅
+## Troubleshooting
 
-### Kafka 연결 실패
+### Kafka Connection Failure
 ```bash
-# Kafka 클러스터 상태 확인
+# Check Kafka cluster status
 docker-compose ps
 
-# Kafka 로그 확인
+# Check Kafka logs
 docker-compose logs kafka-1
 
-# 토픽 목록 확인
+# Check topic list
 docker exec -it kafka-broker-1 kafka-topics --list --bootstrap-server localhost:9092
 ```
 
-### 테스트 실패
+### Test Failures
 ```bash
-# 상세 로그와 함께 테스트 실행
+# Run tests with detailed logs
 ./gradlew test --info --stacktrace
 
-# 특정 테스트만 디버그 모드로 실행
+# Run specific tests in debug mode
 ./gradlew test --tests KafkaIntegrationTest --debug
 ```
 
-### 성능 이슈
-- `max.poll.records` 조정으로 배치 크기 최적화
-- `parallelism` 설정으로 동시 처리 수준 조정
-- JVM 힙 메모리 증가: `-Xmx2g -Xms1g`
+### Performance Issues
+- Optimize batch size by adjusting `max.poll.records`
+- Adjust concurrency level with `parallelism` settings
+- Increase JVM heap memory: `-Xmx2g -Xms1g`
 
-## 참고 자료
+## References
 
 - [Pekko Kafka Connector Documentation](https://pekko.apache.org/docs/pekko-connectors-kafka/current/)
 - [Apache Kafka Documentation](https://kafka.apache.org/documentation/)
 - [Pekko Actor Documentation](https://pekko.apache.org/docs/pekko/current/typed/index.html)
 - [Testcontainers Kafka Module](https://www.testcontainers.org/modules/kafka/)
 
-## 라이선스
+## License
 
-이 프로젝트는 교육 목적으로 작성되었습니다.
+This project is written for educational purposes.

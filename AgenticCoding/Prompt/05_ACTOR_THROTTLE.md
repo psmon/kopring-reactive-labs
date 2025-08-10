@@ -8,6 +8,10 @@
 - 작업은 "mallID" 단위로 발생하며 , mallID별 작업은 TPS1 제약설정이 됩니다.
 - 작업 관리자가 mallID별 하위 작업액터를 관리합니다. 
 
+## 다국어 작성 지침 지원
+- README.md 는 영문으로 작성
+- README-kr.md 은 한글로작성(영문 작성버전을 한글로 번역)
+
 ## Throttle
 
 Throttle 장치는 다음을 참고~ Sleep(스레드차단)없이 제어

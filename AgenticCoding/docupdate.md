@@ -10,7 +10,7 @@ ReactiveStream과 액터모델을 이용해 CRUD가 아닌 CQRS를 처리하는 
 
 ## 다국어 작성 지침 지원
 - readme.md 는 영문으로 유지
-- readme-kr.md 는 한글유지
+- readme-kr.md 는 한글유지 
 
 ## 문서 업데이트  지침
 - 기존작성된것은 유지하고~ 디렉토리를 파악해 추가된부분만 업데이트합니다.

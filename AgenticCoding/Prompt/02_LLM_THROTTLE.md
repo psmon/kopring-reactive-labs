@@ -20,6 +20,9 @@ AgenticCoding/Projects/LLM-THROTTLE 폴더에서 새롭게시작합니다.
 - 유닛테스트 코드가 완성되면 readme.md에 코드컨셉및 듀토리얼을 초보자를 위해 쉽게 설명합니다.
 - Coroutines 비동기수행 테스트가 필요하면 runTest 사용할것
 
+## 다국어 작성 지침 지원
+- README.md 는 영문으로 작성
+- README-kr.md 은 한글로작성(영문 작성버전을 한글로 번역)
 
 ## 참고코드 사전 지식
 
