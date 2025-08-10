@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: persist-eventsource-postgres
+    environment:
+      POSTGRES_DB: eventsource_db
+      POSTGRES_USER: eventsource_user
+      POSTGRES_PASSWORD: eventsource_pass
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eventsource_user -d eventsource_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - eventsource-network
+
+volumes:
+  postgres_data:
+
+networks:
+  eventsource-network:
+    driver: bridge
