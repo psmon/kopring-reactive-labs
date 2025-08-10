@@ -1,35 +1,34 @@
+# Project Creation Guidelines
 
-# 프로젝트 생성지침
+I want to create a Kotlin-based Spring Boot project in the AgenticCoding/Projects/SSE-PUSH-SYSTEM folder.
+Please follow these guidelines when writing the code.
 
-AgenticCoding/Projects/SSE-PUSH-SYSTEM 폴더에 코틀린기반 스프링부트 프로젝트 생성하려고합니다.
-다음 지침을 준수해 작성해주세요
+## Core Functionality Description
+- I want to create a push service using SSE (Server-Sent Events) functionality.
+- The server should be able to publish real-time events to topics.
+- For users who couldn't connect, I want to store up to the latest 100 topics that occurred in the past for each topic when they connect next time.
+- Push will be handled via POST method, and SSE reception will be handled via GET method.
+- Topic-related state processing should be handled by the actor model per user ID.
 
-## 핵심기능 설명
-- SSE(Server-Sent Events) 기능을 활용해 푸시 서비스를 만들고 싶습니다.
-- 서버는 토픽에서 실시간 이벤트를 발행할수 있습니다.
-- 접속하지 못한 사용자를 위해 다음 접속시 과거 발생된 토픽을 최근 100개까지, 토픽별로 저장하고 싶습니다.
-- Push는 Post방식으로, SSE수신은 Get방식으로 처리합니다.
-- 토픽에 관련된 상태처리는 액터모델이 사용자 ID별로 처리합니다.
+## Unit Testing and Additional Guidelines
+- Please write Swagger documentation with comments for the completed code.
+- After completing the code, write and attempt the following unit tests:
+- User 1 subscribes to topic A, and user 2 subscribes to topic B... when a message is generated for topic A, only user 1 receives it.
+- If user 3 connects late after server messages are generated... user 3 can receive up to 100 past generated topics.
+- Once the unit test code is completed, explain the code concept and tutorial in readme.md in an easy-to-understand way for beginners.
 
-## 유닛테스트 및 부가지침 
-- 완성된 코드에 Swagger도 작성해서 코멘트를 작성해주세요
-- 코드 완성후 다음 유닛테스트를 작성및 시도합니다.
-- 사용자1번이 토픽 A를 구독하고, 사용자 2번이 토픽 B를 구독한후... 토픽A에게 메시지를 발생하면 사용자 1번만 수신받습니다.
-- 사용자3번이 서버메시지 발생후 늦게 접속하면... 사용자3번은 과거 발생 토픽을 최대 100개이내에서 받을수 있습니다.
-- 유닛테스트 코드가 완성되면 readme.md에 코드컨셉및 듀토리얼을 초보자를 위해 쉽게 설명합니다.
+## Test Client
+- After the unit tests succeed, please also write an additional test web client based on that.
+- I want to add client functionality that can test SSE in resources/static/index.html.
+- The client has two views, left/right: the left screen is a client that receives SSE, and the right view is a client that generates SSE.
 
-## 테스트 클라이언트
-- 유닛테스트가 성공하면 그 기반으로 추가로 테스트 웹클라이언트도 작성해주세요
-- resources/static/index.html 에서 SSE를 테스트할 수 있는 클라이언트 기능도 추가하고 싶습니다.
-- 클라이언트는 왼쪽/오른쪽 두가지뷰가 있으며 왼쪽화면은 SSE를 수신받는 클라이언트 , 오른쪽뷰는 SEE를 발생하는 클라이언트입니다.
+## Multi-language Writing Guidelines Support
+- README.md should be written in English
+- README-kr.md should be written in Korean (translate the English version to Korean)
 
-## 다국어 작성 지침 지원
-- README.md 는 영문으로 작성
-- README-kr.md 은 한글로작성(영문 작성버전을 한글로 번역)
+## Reference Code Prerequisites
 
-## 참고코드 사전 지식
-
-다음과같은 디렉토리에 참고할만한 샘플코드들이 있습니다.
+There are sample codes worth referencing in the following directories:
 
 ```
 current working directory:
@@ -45,9 +44,9 @@ current working directory:
 └── README.MD
 ```
 
-### 참고대상
-- 참고대상 디렉토리는 참고코드 위치 하위 디렉토리에 있는 파일을 참고
-- 스프링 부트기반 코틀린으로 리액티브 스트림기반의 동시성처리및 다양한 액터모델이 구현되었습니다.
-- 코드학습대상은 *.kt와 .md파일을 참고할것
-- 유닛테스트가 필요하게될시 test 파일에 사용되는 방식을 참고할것
-- spring boot에 필요한 디펜던시는 이 샘플코드의 버전과 동일하게 맞출것 - 그레이들사용
+### Reference Targets
+- Reference target directories refer to files in the subdirectories of the reference code locations
+- Reactive stream-based concurrency processing and various actor models are implemented in Kotlin based on Spring Boot.
+- For code learning targets, refer to *.kt and .md files
+- When unit tests are needed, refer to the methods used in test files
+- Dependencies required for Spring Boot should match the same versions as this sample code - using Gradle

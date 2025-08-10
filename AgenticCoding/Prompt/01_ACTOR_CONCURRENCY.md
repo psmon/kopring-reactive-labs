@@ -1,29 +1,28 @@
+# Project Creation Guidelines
 
-# 프로젝트 생성지침
+Starting fresh in the AgenticCoding/Projects/ACTOR_CONCURRENCY folder.
 
-AgenticCoding/Projects/ACTOR_CONCURRENCY 폴더에서 새롭게시작합니다.
+I want to create a Kotlin-based functional module only, not as an application.
+I want to write the following actors and perform execution and verification only in unit tests.
 
-어플리케이션으로 작동이 아닌 코틀린기반 기능모듈만 만들고자합니다.
-다음과 같은 액터를 작성하고 유닛테스트에서만 실행및 검증을 진행하려합니다.
+## Actor Implementation and Unit Test Implementation
+- Please create a basic hello actor. When you send "Hello", it responds with "Kotlin".
+- The hello actor should be able to designate a test receiver actor that can receive responses.
+- Use the Tell technique to confirm reception.
+- Also confirm responses using the ASK technique and utilize all three of the following concurrency processing techniques: CompletableFuture, WebFlux, and Kotlin Coroutines.
 
-## 구현액터및 유닛테스트 구현
-- 기본 헬로우액터를 만들어주세요, Hello를 전송하면~ Kotlin으로 응답합니다.
-- 헬로우 액터에는 응답을 받을수 있는 테스트 수신액터를 지정할수 있습니다.
-- Tell기법으로 수신확인을 합니다.
-- ASK기법으로도 응답확인을 하며 다음동시성 처리 기법 3가지(CompletableFuture,WebFlux,Kotlin Coroutines) 를 모두 이용합니다
+## Unit Test Execution and Additional Guidelines
+- After completing the code, attempt to run the completed code.
+- Once the unit test code is completed, explain the code concept and tutorial in readme.md in an easy-to-understand way for beginners.
+- If asynchronous execution testing with Coroutines is needed, use runTest.
 
-## 유닛테스트 수행및 부가지침
-- 코드 완성후, 완성된 코드를 시도합니다.
-- 유닛테스트 코드가 완성되면 readme.md에 코드컨셉및 듀토리얼을 초보자를 위해 쉽게 설명합니다.
-- Coroutines 비동기수행 테스트가 필요하면 runTest 사용할것
+## Multi-language Writing Guidelines Support
+- README.md should be written in English
+- README-kr.md should be written in Korean (translate the English version to Korean)
 
-## 다국어 작성 지침 지원
-- README.md 는 영문으로 작성
-- README-kr.md 은 한글로작성(영문 작성버전을 한글로 번역)
+## Reference Code Prerequisites
 
-## 참고코드 사전 지식
-
-다음과같은 디렉토리에 참고할만한 샘플코드들이 있습니다.
+There are sample codes worth referencing in the following directories:
 
 ```
 current working directory:
@@ -39,9 +38,9 @@ current working directory:
 └── README.MD
 ```
 
-### 참고대상
-- 참고대상 디렉토리는 참고코드 위치 하위 디렉토리에 있는 파일을 참고
-- 스프링 부트기반 코틀린으로 리액티브 스트림기반의 동시성처리및 다양한 액터모델이 구현되었습니다.
-- 코드학습대상은 *.kt와 .md파일을 참고할것
-- 유닛테스트가 필요하게될시 test 파일에 사용되는 방식을 참고하고 개선할것
-- 필요한 디펜던시는 이 샘플코드와 동일할시, 버전을 동일하게 맞출것 - 그레이들사용
+### Reference Targets
+- Reference target directories refer to files in the subdirectories of the reference code locations
+- Reactive stream-based concurrency processing and various actor models are implemented in Kotlin based on Spring Boot.
+- For code learning targets, refer to *.kt and .md files
+- When unit tests are needed, refer to and improve upon the methods used in test files
+- When dependencies are the same as this sample code, match the same versions - using Gradle

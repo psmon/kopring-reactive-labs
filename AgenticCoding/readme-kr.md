@@ -105,19 +105,19 @@ AgenticCoding/Projects는 여기서 구성된 프롬프트에의해 생성된 �
 
 현재 상위 경로에서 수행 - 난이도별 학습 경로
 
-| 순번 | 프롬프트 | 난이도 | 핵심 학습 목표 |
-|------|----------|--------|---------------|
-| **00** | [SSE-PUSH 시스템](./Prompt/00_SSE-PUSH-SYSTEM.md) | ⭐⭐ | Spring WebFlux + Actor 기본 패턴 |
-| **01** | [액터 동시성 처리](./Prompt/01_ACTOR_CONCURRENCY.md) | ⭐ | Tell/Ask 패턴과 동시성 모델 비교 |
-| **02** | [LLM 토큰 제어](./Prompt/02_LLM_THROTTLE.md) | ⭐⭐⭐ | 백프레셔와 Pekko Streams 활용 |
-| **03** | [액터 라우터](./Prompt/03_ACTOR_ROUTER.md) | ⭐⭐ | 6가지 라우팅 전략과 확장성 |
-| **04** | [액터 스트림](./Prompt/04_ACTOR_STREAM.md) | ⭐⭐⭐ | 다양한 스트림 처리 기술 비교 |
-| **05** | [액터 스로틀](./Prompt/05_ACTOR_THROTTLE.md) | ⭐⭐⭐ | 고급 백프레셔와 메시지 큐 관리 |
-| **06** | [Kafka 커넥터](./Prompt/06_CONNECTOR_KAFKA.md) | ⭐⭐⭐⭐ | 외부 시스템 통합과 이벤트 처리 |
-| **07** | [액터 영속성](./Prompt/07_PERSIST_DURABLE.md) | ⭐⭐⭐⭐ | 영속성과 상태 복원, 자원 관리 |
-| **08** | [Pekko HTTP 서버](./Prompt/08_PEKKO_HTTP.md) | ⭐⭐⭐⭐ | Pekko HTTP 서버와 순수 액터 시스템 |
-| **09** | [분산 영속성 클러스터](./Prompt/09_PERSIST_DURABLE_CLUSTER.md) | ⭐⭐⭐⭐⭐ | Cluster Sharding과 Durable State 통합 |
-| **10** | [이벤트 소싱 영속성](./Prompt/10_PERSIST_EVENTSOURCE.md) | ⭐⭐⭐⭐⭐ | 완전한 감사 추적과 상태 재구성을 갖춘 이벤트 소싱 |
+| 순번 | 프롬프트                                                  | 난이도 | 핵심 학습 목표 |
+|------|-------------------------------------------------------|--------|---------------|
+| **00** | [SSE-PUSH 시스템](./Prompt/00_SSE-PUSH-SYSTEM-KR.md)      | ⭐⭐ | Spring WebFlux + Actor 기본 패턴 |
+| **01** | [액터 동시성 처리](./Prompt/01_ACTOR_CONCURRENCY-KR.md)         | ⭐ | Tell/Ask 패턴과 동시성 모델 비교 |
+| **02** | [LLM 토큰 제어](./Prompt/02_LLM_THROTTLE-KR.md)              | ⭐⭐⭐ | 백프레셔와 Pekko Streams 활용 |
+| **03** | [액터 라우터](./Prompt/03_ACTOR_ROUTER-KR.md)                 | ⭐⭐ | 6가지 라우팅 전략과 확장성 |
+| **04** | [액터 스트림](./Prompt/04_ACTOR_STREAM-KR.md)                 | ⭐⭐⭐ | 다양한 스트림 처리 기술 비교 |
+| **05** | [액터 스로틀](./Prompt/05_ACTOR_THROTTLE-KR.md)               | ⭐⭐⭐ | 고급 백프레셔와 메시지 큐 관리 |
+| **06** | [Kafka 커넥터](./Prompt/06_CONNECTOR_KAFKA-KR.md)           | ⭐⭐⭐⭐ | 외부 시스템 통합과 이벤트 처리 |
+| **07** | [액터 영속성](./Prompt/07_PERSIST_DURABLE-KR.md)              | ⭐⭐⭐⭐ | 영속성과 상태 복원, 자원 관리 |
+| **08** | [Pekko HTTP 서버](./Prompt/08_PEKKO_HTTP-KR.md)            | ⭐⭐⭐⭐ | Pekko HTTP 서버와 순수 액터 시스템 |
+| **09** | [분산 영속성 클러스터](./Prompt/09_PERSIST_DURABLE_CLUSTER-KR.md) | ⭐⭐⭐⭐⭐ | Cluster Sharding과 Durable State 통합 |
+| **10** | [이벤트 소싱 영속성](./Prompt/10_PERSIST_EVENTSOURCE-KR.md)      | ⭐⭐⭐⭐⭐ | 완전한 감사 추적과 상태 재구성을 갖춘 이벤트 소싱 |
 
 > **참고**: 액터모델은 자바(+코틀린)가 지원하는 다양한 동시성프로그래밍을 이해하며 이를 이용하기때문에, 동시성 처리 기본기는 중요합니다.
 

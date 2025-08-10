@@ -1,19 +1,17 @@
-# 액터모델 +리액티브 스트림을 코드구현 by Claude Code
+# Actor Model + Reactive Streams Code Implementation by Claude Code
 
-**리액티브 스트림(Reactive Streams)**은 비동기 데이터 처리와 흐름 제어(Backpressure)를 표준화한 자바 진영의 명세로, Netflix, Lightbend, Pivotal 등 주요 기업들이 참여해 2015년에 정식 발표되었습니다. Java 9부터는 Flow API로 포함되어 공식적인 JVM 표준이 되었으며, Spring WebFlux, Akka Streams, Project Reactor, RxJava 등 다양한 프레임워크들이 이를 기반으로 비동기 스트림 처리의 신뢰성과 일관성을 제공하고 있습니다. 특히 고속 데이터 전송, 스트리밍 분석, 웹소켓 기반 실시간 서비스에 핵심적인 기술로 자리 잡았습니다.
+**Reactive Streams** is a specification from the Java ecosystem that standardizes asynchronous data processing and flow control (Backpressure). It was officially announced in 2015 with participation from major companies including Netflix, Lightbend, and Pivotal. Since Java 9, it has been included as the Flow API, making it an official JVM standard. Various frameworks such as Spring WebFlux, Akka Streams, Project Reactor, and RxJava provide reliability and consistency in asynchronous stream processing based on this specification. It has particularly become a core technology for high-speed data transmission, streaming analytics, and WebSocket-based real-time services.
 
-**액터모델(Actor Model)**은 상태를 메시지를 통해만 변경할 수 있는 독립적인 액터 단위로 분산 시스템을 구성하는 개념으로, 동시성 문제를 안전하게 해결하면서 수평 확장이 용이하다는 장점이 있습니다. Erlang/OTP, Akka(Lightbend), Microsoft Orleans 등의 구현체를 통해 WhatsApp, LinkedIn, Tesla, Microsoft 같은 글로벌 기업들이 실시간 통신, IoT, 게임, AI 에이전트 등에 성공적으로 활용하고 있으며, 이벤트 기반 구조와 궁합이 좋아 복잡한 비즈니스 로직이나 AI 파이프라인의 오케스트레이션에도 탁월한 구조를 제공합니다.
+**Actor Model** is a concept that constructs distributed systems with independent actor units where state can only be changed through messages. It has the advantage of safely solving concurrency problems while being easily scalable horizontally. Through implementations like Erlang/OTP, Akka (Lightbend), and Microsoft Orleans, global companies such as WhatsApp, LinkedIn, Tesla, and Microsoft have successfully utilized it for real-time communication, IoT, gaming, and AI agents. It works well with event-based architectures and provides excellent structures for orchestrating complex business logic and AI pipelines.
 
-## 프로젝트 목적
+## Project Purpose
 
-액터모델을 알지못해도 액터모델을 이용하는 다양한 샘플기능을 바이브로도 만들수있지만
-바이브를 통해 액터구현을 다양하게 시도할수 있음으로 학습곡선에따른 시간을 단축하는것과 동시에
-액터시스템이 지원하는 클러스터 포함 상태프로그래밍/분산처리 설계능력을 로컬로 수행함으로 고오급 설계 능력을 배양하는데 목적이있습니다.
+Even without knowing the actor model, you can create various sample functions using actors through Vibe.
+However, by attempting various actor implementations through Vibe, the purpose is to shorten the time according to the learning curve while simultaneously cultivating advanced design capabilities by performing state programming/distributed processing design capabilities supported by actor systems, including clusters, locally.
 
-## 이용 AI-TOOL
-- Cluade Code
+## AI Tool Used
+- Claude Code
 
-## 후속조치
-유닛테스트를 수행하라고 했으나 빌드까지 통과시키고, 여러번 시도하다가 마무리되는 경우 다음과같은 후속조치
-- 유닛테스트가 일부 실패함 모두 통과되게 개선
-
+## Follow-up Actions
+When unit tests were requested but the build passes and after several attempts it gets finalized, the following follow-up actions:
+- Some unit tests fail; improve so all pass

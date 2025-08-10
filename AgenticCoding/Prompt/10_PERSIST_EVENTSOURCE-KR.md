@@ -1,32 +1,44 @@
-# Project Creation Guidelines
-- Create a project in the AgenticCoding/Projects/PERSIST_DURABLE folder.
-- I want to create a Kotlin-based functional module only, not as an application.
-- I want to write, execute, and verify unit tests that meet the following functional requirements.
 
-## Implementation Module and Unit Tests
-- I want to create an actor model that maintains and stores specific last state values from unpredictably occurring user behavior events.
-- Use durable_state supported by pekko-r2dbc persist.
-- The state information to be maintained includes last login, last shopping cart usage date, recent 3 viewed products, and marketing reception status.
-- The unique identifier is configured like mallId-userId format.
-- If there are no events for 30 minutes per user, the actor model shuts down by itself, and when there is a next matching user request, the actor model restores persistence and operates again.
+# 프로젝트 생성지침
+- AgenticCoding/Projects/PERSIST_EVENTSOURCE 폴더에서 프로젝트를 생성합니다.
+- 어플리케이션으로 작동이 아닌 코틀린기반 기능모듈만 만들고자합니다.
+- 다음 기능요구사항을 충족하는 유닛테스트를 작성실행및 검증을 진행하려합니다.
 
-## Multi-language Writing Guidelines Support
-- README.md should be written in English
-- README-kr.md should be written in Korean (translate the English version to Korean)
+## 구현모듈및 유닛테스트
+- 가상월렛의 기능을 이벤트소싱 기법을 이용해 만드려합니다.
+- 가상월렛 포인트 입금(DepositAdded), 출금(WithdrawalMade) 등을 이벤트로 저장.
+- 가상월렛이 추가로 가져야할 기능 아이디어가 있다면 추가적용
+- 재생하면 계좌의 잔액과 거래 이력을 언제나 정확하게 재구성할 수 있어, **감사(audit)**와 **추적(traceability)** 기능도 구현
+- 이벤트 소싱중 스냅샵 기법도활용
 
-## Local Environment Additional Guidelines
-- Configure PostgreSQL using DockerCompose.
-- After running the infrastructure~ perform unit tests to verify build errors and unit tests.
 
-## Usage Sample Code
+## 로컬환경 추가지침
+- PostGres는 DockerCompose를 이용해 구성합니다.
+- 인프라를 구동후~ 유닛테스트를 수행해 , 빌드오류및 유닛테스트를 검증합니다.
 
-There are basic sample codes in the subdirectories of KotlinBootReactiveLabs. Analyze and utilize the following:
-- HelloPersistentDurable.kt
-- HelloPersistentDurableStateActorTest.kt
+## 활용샘플코드
 
-## 
+eventsource를 활용한 pekko 샘플코드및 참고문서가 있습니다. 다음을 분석후 활용
 
-To use the persistence supported by pekko, use the following schema in PostgreSQL:
+- https://github.com/apache/pekko-samples/blob/main/pekko-sample-persistence-java/src/main/java/sample/persistence/ShoppingCart.java
+- https://pekko.apache.org/docs/pekko/current/typed/persistence.html#event-sourcing
+
+
+## 유닛테스트 수행및 부가지침
+- 코드 완성후, 완성된 코드 유닛테스트 시도합니다.
+- 긴시간을 기다려야하는 테스트인경우, manualTime.timePasses 을 활용합니다.
+- pekko testkit을 활용해, 완료대상 probe를 통해 검증및 확인합니다.
+- CRUD를 구현했을때보다 성능적인 이점, 감사,추적의 이점등도 유닛테스트를 통해 장점을 알수 있는 로드테스트도 수행해..
+- 유닛테스트 코드가 완성되면 readme.md에 코드컨셉및 듀토리얼을 초보자를 위해 쉽게 설명합니다. 필요하면 mermaid이용 다이어그램 설명도 함께합니다.
+- readme.md 에 추가로 전통적인 CRUD와 이벤트소싱기법의 장단점을 비교, CQRS 기법중에서도 이벤트소싱과 다음을 DurabbleState, persistence query, state store plugin 등 다양한 장치와도 비교
+
+
+## 다국어 작성 지침 지원
+- README.md 는 영문으로 작성
+- README-kr.md 은 한글로작성(영문 작성버전을 한글로 번역)
+
+##
+pekko가 지원하는 영속성을 이용하기위해서는 PostgreSQL에서 다음과 같은 스키마를 이용
 
 ```postgresql
 CREATE TABLE IF NOT EXISTS event_journal(
@@ -125,16 +137,10 @@ CREATE TABLE IF NOT EXISTS projection_management (
     );
 ```
 
-## Unit Test Execution and Additional Guidelines
-- After completing the code, attempt unit testing of the completed code.
-- For tests that require waiting for a long time, use manualTime.timePasses.
-- Use pekko testkit to verify and confirm through completion target probe.
-- Once the unit test code is completed, explain the code concept and tutorial in readme.md in an easy-to-understand way for beginners. If necessary, also include diagram explanations using mermaid.
-- Additionally in readme.md, explain the advantages and disadvantages of each device compared to kafka-ktable and apache-flink when doing state programming through pekko-persist.
 
-## Pekko Reference Knowledge
+## Pekko 참고지식
 
-There are Pekko sample codes that work with Kotlin in the following directories:
+다음 디렉토리에 코틀린으로 작동되는 Pekko 샘플코드들이 있습니다.
 
 ```
 current working directory:
@@ -150,9 +156,9 @@ current working directory:
 └── README.MD
 ```
 
-### Reference Targets
-- Reference target directories refer to files in the subdirectories of the reference code locations
-- Reactive stream-based concurrency processing and various actor models are implemented in Kotlin based on Spring Boot.
-- For code learning targets, refer to *.kt and .md files
-- When unit tests are needed, refer to and improve upon the methods used in test files
-- When dependencies are the same as this sample code, match the same versions - using Gradle
+### 참고대상
+- 참고대상 디렉토리는 참고코드 위치 하위 디렉토리에 있는 파일을 참고
+- 스프링 부트기반 코틀린으로 리액티브 스트림기반의 동시성처리및 다양한 액터모델이 구현되었습니다.
+- 코드학습대상은 *.kt와 .md파일을 참고할것
+- 유닛테스트가 필요하게될시 test 파일에 사용되는 방식을 참고하고 개선할것
+- 필요한 디펜던시는 이 샘플코드와 동일할시, 버전을 동일하게 맞출것 - 그레이들사용

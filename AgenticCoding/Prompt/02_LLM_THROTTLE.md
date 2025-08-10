@@ -1,32 +1,31 @@
+# Project Creation Guidelines
 
-# 프로젝트 생성지침
+Starting fresh in the AgenticCoding/Projects/LLM-THROTTLE folder.
 
-AgenticCoding/Projects/LLM-THROTTLE 폴더에서 새롭게시작합니다.
+I want to create a Kotlin-based functional module only, not as an application.
+I want to write the following actors and perform execution and verification only in unit tests.
 
-어플리케이션으로 작동이 아닌 코틀린기반 기능모듈만 만들고자합니다.
-다음과 같은 액터를 작성하고 유닛테스트에서만 실행및 검증을 진행하려합니다.
+## Actor Implementation and Unit Test Implementation
+- I want to create a device that constrains and controls LLM calls using a throttle mechanism
+- Create the LLM token meter as a virtual class, applying character count + random(0~500)
+- The LLM per-minute constraint is 10,000 tokens
+- The purpose of this device is to perform well as a backpressure mechanism to prevent usage when tokens are exceeded. When approaching the threshold, it's acceptable to respond slowly
+- If the threshold is not reached, respond as stably as possible
+- If the limit is reached and processing cannot be done, load failed items into a separate failed item list... batch services can process them later if needed
+- Create one additional extended version of LLMThrottleActor that automatically controls speed using PekkoStream's throttle mechanism. The core point is being able to automatically adjust speed using this, and both versions (with and without this feature) are needed
 
-## 구현액터및 유닛테스트 구현
-- Throttle장치를 이용해, LLM호출을 제약하고 제어하는 장치를 만들고 싶음
-- LLM 토큰 측정기는 가상클래스로 만들고, 문자수+랜덤(0~500) 적용해
-- LLM 분당 제약은 10000토큰임
-- 이 장치의 목적은 토큰이 초과되어 사용못하는것을 방지하는 Backpressure 역할을 잘 수행하는것으로 임계치에 다다르면 느리게 응답해도됨
-- 임계치에 도달하지 못했으면 최대한 안정적으로 반응해
-- 그래도 리밋에 도달해 처리가 안될시에는 별도 실패된 항목 리스트로 적재.. 나중에 필요하면 배치서비스가 처리할수도 있음
-- LLMThrottleActor확장 버전도 추가로 하나더 만들어, PekkoStream의 Throttle장치를 이용해 속도조절을 자동으로 할수 있는게 핵심포인트 이며 이것을 활용한버전과 아닌버전 두개가 필요
+## Unit Test Execution and Additional Guidelines
+- After completing the code, attempt unit testing of the completed code.
+- Once the unit test code is completed, explain the code concept and tutorial in readme.md in an easy-to-understand way for beginners.
+- If asynchronous execution testing with Coroutines is needed, use runTest.
 
-## 유닛테스트 수행및 부가지침
-- 코드 완성후, 완성된 코드 유닛테스트 시도합니다.
-- 유닛테스트 코드가 완성되면 readme.md에 코드컨셉및 듀토리얼을 초보자를 위해 쉽게 설명합니다.
-- Coroutines 비동기수행 테스트가 필요하면 runTest 사용할것
+## Multi-language Writing Guidelines Support
+- README.md should be written in English
+- README-kr.md should be written in Korean (translate the English version to Korean)
 
-## 다국어 작성 지침 지원
-- README.md 는 영문으로 작성
-- README-kr.md 은 한글로작성(영문 작성버전을 한글로 번역)
+## Reference Code Prerequisites
 
-## 참고코드 사전 지식
-
-다음과같은 디렉토리에 참고할만한 샘플코드들이 있습니다.
+There are sample codes worth referencing in the following directories:
 
 ```
 current working directory:
@@ -42,9 +41,9 @@ current working directory:
 └── README.MD
 ```
 
-### 참고대상
-- 참고대상 디렉토리는 참고코드 위치 하위 디렉토리에 있는 파일을 참고
-- 스프링 부트기반 코틀린으로 리액티브 스트림기반의 동시성처리및 다양한 액터모델이 구현되었습니다.
-- 코드학습대상은 *.kt와 .md파일을 참고할것
-- 유닛테스트가 필요하게될시 test 파일에 사용되는 방식을 참고하고 개선할것
-- 필요한 디펜던시는 이 샘플코드와 동일할시, 버전을 동일하게 맞출것 - 그레이들사용
+### Reference Targets
+- Reference target directories refer to files in the subdirectories of the reference code locations
+- Reactive stream-based concurrency processing and various actor models are implemented in Kotlin based on Spring Boot.
+- For code learning targets, refer to *.kt and .md files
+- When unit tests are needed, refer to and improve upon the methods used in test files
+- When dependencies are the same as this sample code, match the same versions - using Gradle

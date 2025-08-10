@@ -1,31 +1,30 @@
+# Project Creation Guidelines
 
-# 프로젝트 생성지침
+- Starting fresh in the AgenticCoding/Projects/ACTOR_ROUTER folder.
+- I want to create a Kotlin-based functional module only, not as an application.
+- I want to write the following actors and perform execution and verification only in unit tests.
 
-- AgenticCoding/Projects/ACTOR_ROUTER 폴더에서 새롭게시작합니다.
-- 어플리케이션으로 작동이 아닌 코틀린기반 기능모듈만 만들고자합니다.
-- 다음과 같은 액터를 작성하고 유닛테스트에서만 실행및 검증을 진행하려합니다.
+## Actor Implementation and Unit Test Implementation
+- I want to write a tutorial-style actor model to understand ACTOR Router.
+- There is a WorkerActor as a worker, and there is a management actor above that distributes work.
+- I want to implement various distributor samples supported by the router, including sequential distribution and random distribution.
+- RouterActor distributes work to workers, and workers perform the work and then report the work to the manager.
+- Workers should be able to monitor and report the workload of sub-workers.
+- If the number of workers is needed, scale in/out should be possible for adjustment.
+- Please attempt implementation with local actors only, and explain the method of extension to remote/cluster in documentation without implementation and execution. The key content is that locally implemented actors should be extensible without changing service logic.
 
-## 구현액터및 유닛테스트 구현
-- ACTOR Router를 이해하는 듀토리얼성의 액터모델을 작성하려고합니다.
-- 작업자는 WorkerActor가 있으며, 작업을 분배하는 관리액터가 상위에 있습니다.
-- 순차분배,랜덤분배를 포함 라우터가 지원하는 다양한 분배기 샘플을 구현하고자 합니다.
-- RouterActor는 작업자에게 작업을 분배하고, 작업자는 작업을 수행한후 관리자에게 작업을 보고합니다.
-- 작업자는 하위작업자의 작업량을 모니터링하고 리포팅할수 있습니다.
-- 작업자수 필요하면 스케일 인/아웃이 가능해 조절할수 있어야합니다.
-- 로컬액터로만 구현시도해주고 , 리모트/클러스터로의 확장은 구현및 실행없이 전환방법만 문서로 설명합니다. 로컬로 구현한 액터가 서비스로직 변경없이 확장가능해야한다란 점이 핵심컨텐츠 입니다.
+## Unit Test Execution and Additional Guidelines
+- After completing the code, attempt unit testing of the completed code.
+- Once the unit test code is completed, explain the code concept and tutorial in readme.md in an easy-to-understand way for beginners.
+- If asynchronous execution testing with Coroutines is needed, use runTest.
 
-## 유닛테스트 수행및 부가지침
-- 코드 완성후, 완성된 코드 유닛테스트 시도합니다.
-- 유닛테스트 코드가 완성되면 readme.md에 코드컨셉및 듀토리얼을 초보자를 위해 쉽게 설명합니다.
-- Coroutines 비동기수행 테스트가 필요하면 runTest 사용할것
+## Multi-language Writing Guidelines Support
+- README.md should be written in English
+- README-kr.md should be written in Korean (translate the English version to Korean)
 
-## 다국어 작성 지침 지원
-- README.md 는 영문으로 작성
-- README-kr.md 은 한글로작성(영문 작성버전을 한글로 번역)
+## Reference Code Prerequisites
 
-## 참고코드 사전 지식
-
-다음과같은 디렉토리에 참고할만한 샘플코드들이 있습니다.
+There are sample codes worth referencing in the following directories:
 
 ```
 current working directory:
@@ -41,9 +40,9 @@ current working directory:
 └── README.MD
 ```
 
-### 참고대상
-- 참고대상 디렉토리는 참고코드 위치 하위 디렉토리에 있는 파일을 참고
-- 스프링 부트기반 코틀린으로 리액티브 스트림기반의 동시성처리및 다양한 액터모델이 구현되었습니다.
-- 코드학습대상은 *.kt와 .md파일을 참고할것
-- 유닛테스트가 필요하게될시 test 파일에 사용되는 방식을 참고하고 개선할것
-- 필요한 디펜던시는 이 샘플코드와 동일할시, 버전을 동일하게 맞출것 - 그레이들사용
+### Reference Targets
+- Reference target directories refer to files in the subdirectories of the reference code locations
+- Reactive stream-based concurrency processing and various actor models are implemented in Kotlin based on Spring Boot.
+- For code learning targets, refer to *.kt and .md files
+- When unit tests are needed, refer to and improve upon the methods used in test files
+- When dependencies are the same as this sample code, match the same versions - using Gradle
