@@ -1,4 +1,4 @@
-# 액터모델 + 리액티브 스트림 코드구현 by Claude Code
+# 코틀린 기반 Pekko 액터모델 + 리액티브 스트림 코드구현 by Claude Code
 
 **리액티브 스트림(Reactive Streams)**은 비동기 데이터 처리와 흐름 제어(Backpressure)를 표준화한 자바 진영의 명세로, Netflix, Lightbend, Pivotal 등 주요 기업들이 참여해 2015년에 정식 발표되었습니다. Java 9부터는 Flow API로 포함되어 공식적인 JVM 표준이 되었으며, Spring WebFlux, Akka Streams, Project Reactor, RxJava 등 다양한 프레임워크들이 이를 기반으로 비동기 스트림 처리의 신뢰성과 일관성을 제공하고 있습니다. 특히 고속 데이터 전송, 스트리밍 분석, 웹소켓 기반 실시간 서비스에 핵심적인 기술로 자리 잡았습니다.
 
