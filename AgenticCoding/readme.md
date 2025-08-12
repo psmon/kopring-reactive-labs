@@ -1,4 +1,4 @@
-# Actor Model + Reactive Streams Implementation by Claude Code
+# Kotlin Pekko Actor Model + Reactive Streams Implementation by Claude Code
 
 **Reactive Streams** is a Java ecosystem specification that standardizes asynchronous data processing and flow control (Backpressure). Major companies like Netflix, Lightbend, and Pivotal participated in its development, officially released in 2015. Since Java 9, it has been included as the Flow API, becoming an official JVM standard. Various frameworks such as Spring WebFlux, Akka Streams, Project Reactor, and RxJava provide reliability and consistency in asynchronous stream processing based on this specification. It has become a core technology particularly for high-speed data transmission, streaming analytics, and WebSocket-based real-time services.
 
